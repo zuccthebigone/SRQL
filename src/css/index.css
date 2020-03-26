@@ -1,0 +1,473 @@
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+body {
+  margin: 0;
+}
+
+body :focus {
+  outline: none;
+}
+
+body window-frame {
+  position: absolute;
+  z-index: 9998;
+  left: 0;
+  right: 0;
+  -webkit-app-region: drag;
+  background-color: #4f4a80;
+  text-align: center;
+}
+
+body window-frame input {
+  width: 55%;
+  max-width: 650px;
+  height: 34px;
+  margin: 7px 0;
+  -webkit-app-region: none;
+  border: none;
+  border-radius: 6px;
+  background-color: #eee;
+  text-align: center;
+  padding-left: 12px;
+  -webkit-transition: background-color .4s;
+  transition: background-color .4s;
+}
+
+body window-frame input:focus {
+  text-align: left;
+  background-color: white;
+}
+
+body window-frame button {
+  float: right;
+  -webkit-app-region: none;
+  background-color: transparent;
+  color: white;
+  font-size: 16px;
+  border: none;
+  width: 44px;
+  height: 48px;
+  margin: 0;
+  cursor: pointer;
+}
+
+body window-frame button.options {
+  float: left;
+  width: 68px;
+  -webkit-transition: -webkit-transform .4s;
+  transition: -webkit-transform .4s;
+  transition: transform .4s;
+  transition: transform .4s, -webkit-transform .4s;
+}
+
+body window-frame button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+body window-frame button:active {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+body window-frame button.options:hover {
+  background-color: transparent;
+  -webkit-transform: rotate(90deg);
+          transform: rotate(90deg);
+}
+
+body window-frame button.close:hover {
+  background-color: #ff3f3f;
+}
+
+body page-select {
+  position: absolute;
+  z-index: 9999;
+  top: 48px;
+  bottom: 0;
+  left: 0;
+  width: 68px;
+  background: #2a2d39;
+}
+
+body page-select button {
+  width: 68px;
+  height: 60px;
+  border: none;
+  background-color: transparent;
+  color: #aaaaaa;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+body page-select button i {
+  display: block !important;
+  padding-bottom: 4px;
+  color: #ddd;
+  font-size: 24px;
+}
+
+body page-select button:hover {
+  background-color: #333f52;
+  color: white;
+}
+
+body page-select button:hover i {
+  color: white;
+}
+
+body page-select button[active] {
+  background-color: #333f52;
+  color: white;
+}
+
+body page-select .indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 60px;
+  background-color: #ddd;
+  -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.57, 1.3);
+  transition: -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.57, 1.3);
+  transition: transform 0.2s cubic-bezier(0.01, 0.03, 0.57, 1.3);
+  transition: transform 0.2s cubic-bezier(0.01, 0.03, 0.57, 1.3), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.57, 1.3);
+}
+
+body app-page {
+  display: none;
+  position: absolute;
+  top: 48px;
+  left: 68px;
+  bottom: 0;
+  right: 0;
+  background-color: #eee;
+}
+
+body app-page[active] {
+  display: block;
+}
+
+body app-page tab-select {
+  display: block;
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  border-bottom: 1px solid #ddd;
+}
+
+body app-page tab-select button {
+  height: 58px;
+  background-color: transparent;
+  margin: 0 8px;
+  border: none;
+  color: black;
+  cursor: pointer;
+}
+
+body app-page tab-select button[active] {
+  color: #4f4a80;
+  font-weight: bold;
+  border-bottom: 4px solid #4f4a80 !important;
+  cursor: default;
+}
+
+body app-page tab-select button:hover {
+  border-bottom: 4px solid #4f4a806c;
+}
+
+body app-tab {
+  display: none;
+  position: absolute;
+  top: 60px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  padding: 24px;
+  background-color: #f3f3f3;
+  overflow-y: auto;
+}
+
+body app-tab[active] {
+  display: block;
+}
+
+body #inbox app-inbox .email {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 100%;
+  height: 60px;
+  background-color: #ddd;
+  font-size: 12px;
+  line-height: 60px;
+}
+
+body #inbox app-inbox .email:nth-child(odd) {
+  background-color: #d9d9d9;
+}
+
+body #inbox app-inbox .email div {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+body #inbox app-inbox .email .user {
+  margin-left: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 100%;
+  background-color: #333f52;
+  text-align: center;
+  color: #eee;
+  font-size: 12px;
+  line-height: 36px;
+}
+
+body #inbox app-inbox .email .username {
+  cursor: pointer;
+}
+
+body #inbox app-inbox .email .username:hover {
+  text-decoration: underline;
+}
+
+body #inbox app-inbox .email .block {
+  width: 4px;
+  height: 4px;
+  border-radius: 100%;
+  background-color: #999;
+}
+
+body #inbox app-inbox .email .message {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body #srqls {
+  overflow-y: auto;
+}
+
+body #srqls h1 {
+  padding: 24px;
+  margin: 0;
+  height: 60px;
+  border-bottom: 1px solid #ddd;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+body #srqls .tiles {
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 180px 180px 180px 180px 180px 180px;
+      grid-template-columns: 180px 180px 180px 180px 180px 180px;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  grid-column-gap: 32px;
+  grid-row-gap: 32px;
+}
+
+body #srqls .tiles srql-tile {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: relative;
+  width: 180px;
+  height: 180px;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  background-color: #fff;
+  border-radius: 50px;
+  -webkit-box-shadow: 4px 4px 0 0 #0000000a;
+          box-shadow: 4px 4px 0 0 #0000000a;
+  -webkit-transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  cursor: pointer;
+}
+
+body #srqls .tiles srql-tile:hover {
+  -webkit-box-shadow: 2px 2px 0 0 #0000000a;
+          box-shadow: 2px 2px 0 0 #0000000a;
+  -webkit-transform: translate(2px, 2px);
+          transform: translate(2px, 2px);
+}
+
+body #srqls .tiles srql-tile:active {
+  -webkit-box-shadow: 0 0 0 0 #0000000a, inset 2px 2px 0 0 #0000001f;
+          box-shadow: 0 0 0 0 #0000000a, inset 2px 2px 0 0 #0000001f;
+  -webkit-transform: translate(4px, 4px);
+          transform: translate(4px, 4px);
+}
+
+body #srqls .tiles srql-tile .options {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: transparent;
+  border: none;
+  color: #d3d3d3;
+  cursor: pointer;
+  -webkit-transition: color .2s;
+  transition: color .2s;
+}
+
+body #srqls .tiles srql-tile .options:hover {
+  color: black;
+}
+
+body #srqls .tiles srql-tile .image {
+  width: 70px;
+  height: 70px;
+  background-color: #4f4a80;
+  border-radius: 100%;
+  color: #d9d9d9;
+  text-align: center;
+  line-height: 70px;
+}
+
+body #srqls .tiles srql-tile .title {
+  position: absolute;
+  top: 146px;
+  font-size: 10px;
+}
+
+@media screen and (max-width: 1350px) {
+  body #srqls .tiles {
+    -ms-grid-columns: 180px 180px 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px 180px 180px;
+  }
+}
+
+@media screen and (max-width: 1140px) {
+  body #srqls .tiles {
+    -ms-grid-columns: 180px 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px 180px;
+  }
+}
+
+@media screen and (max-width: 930px) {
+  body #srqls .tiles {
+    -ms-grid-columns: 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px;
+  }
+}
+
+body #srqls #current-srql smart-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 76px;
+  right: 0;
+  padding: 24px 10%;
+  background-color: #f3f3f3;
+}
+
+body #srqls #current-srql smart-text .message {
+  display: block;
+  margin-top: 10px;
+}
+
+body #srqls #current-srql smart-text .message .file {
+  display: inline-block;
+  padding: 8px;
+  margin: 4px;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+body #srqls #current-srql smart-text .message .text {
+  display: inline-block;
+  color: #555;
+  font-size: 12px;
+}
+
+body #srqls #current-srql smart-input {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 76px;
+  background-color: #f3f3f3;
+}
+
+body #srqls #current-srql smart-input input {
+  width: 80%;
+  min-width: 550px;
+  height: 46px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  padding-left: 46px;
+}
+
+body #srqls #current-srql smart-input input:hover, body #srqls #current-srql smart-input input:focus {
+  border-color: #ccc;
+}
+
+body #srqls #current-srql smart-input i {
+  position: relative;
+  left: 28px;
+  height: 46px;
+  line-height: 46px;
+  font-size: 20px;
+  color: #4f4a80;
+}
+/*# sourceMappingURL=index.css.map */

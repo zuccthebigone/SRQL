@@ -1,0 +1,28 @@
+{
+  "name": "srql",
+  "version": "1.0.0",
+  "description": "A P2P file sharing platform for students.",
+  "main": "init.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zuccthebigone/SRQL.git"
+  },
+  "author": "Matthew Dunn",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zuccthebigone/SRQL/issues"
+  },
+  "homepage": "https://github.com/zuccthebigone/SRQL#readme",
+  "devDependencies": {
+    "electron": "^8.1.1"
+  },
+  "dependencies": {
+    "csvtojson": "^2.0.10",
+    "jquery": "^3.4.1",
+    "pg": "^7.18.2",
+    "uuid": "^7.0.2"
+  }
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>SRQL</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://kit.fontawesome.com/7785ba9eb3.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+  </head>
+  <body>
+    <window-frame></window-frame>
+
+    <page-select>
+      <button target="home" active><i class="fas fa-home"></i>Home</button>
+      <button target="srqls"><i class="fas fa-user-friends"></i>Srqls</button>
+      <button target="files"><i class="fas fa-archive"></i>Files</button>
+      <button target="settings"><i class="fas fa-cog"></i>Settings</button>
+    </page-select>
+
+    <app-page id="home" active>
+      <tab-select>
+        <button target="inbox" active>Inbox</button>
+        <button target="assignments">Assignments</button>
+        <button target="help">Help</button>
+      </tab-select>
+
+      <app-tab id="inbox" active>
+        <app-inbox></app-inbox>
+      </app-tab>
+
+      <app-tab id="assignments">
+        Assignments
+      </app-tab>
+
+      <app-tab id="help">
+        Help
+      </app-tab>
+    </app-page>
+
+    <app-page id="srqls">
+      <h1 class="title">SRQLS</h1>
+      <app-tab>
+        <div class="tiles" id="srqls-container"></div>
+      </app-tab>
+      <app-tab id="current-srql" active>
+        <smart-text></smart-text>
+        <smart-input></smart-input>
+      </app-tab>
+    </app-page>
+
+    <app-page id="files">
+      FILES
+    </app-page>
+
+    <app-page id="settings">
+      SETTINGS
+    </app-page>
+
+    <script src="utils.js"></script>
+    <script src="parse.js"></script>
+    <script src="custom_elements.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>

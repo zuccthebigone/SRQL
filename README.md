@@ -19,4 +19,4 @@ Keyword | Action
 Keyword | Action
 -- | --
 `/add USERNAME [SRQLNAME]` | Add user to a SRQL (current SRQL if empty)
-`/create SRQLNAME [OPTIONS]` <br> `OPTIONS` <br> &emsp; `-v, --visible` <br> &emsp; `-h, --hidden` <br> &emsp; `-u, --users <usernames>` | Create a visible or hidden SRQL and add users as members<br><br><br><br><br>
+`/create SRQLNAME [OPTIONS]` <br> `OPTIONS` <br> &emsp; `-v, --visible` <br> &emsp; `-h, --hidden` <br> &emsp; `-u, --users <usernames>` | Create a visible or hidden SRQL and add users as members
