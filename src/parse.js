@@ -139,13 +139,17 @@ class ChatParser {
     parse_start_section(section_string) {
         let section = {};
 
-        let delim_obj = this.body_delims.start.find(({ string }) => {
+        let delim = this.body_delims.start.find(({ string }) => {
             return section_string.substr(0, string.length) == string;
-        });
+        }) ?? {
+            string: "",
+            type: "text",
+            data: section_string,
+            parse: string => string
+        };
 
-        let delim_found = delim_obj !== undefined;
-        section.type = delim_found ? delim_obj.type : "text";
-        section.data = delim_found ? delim_obj.parse(section_string.substr(delim_obj.string.length)) : section_string;
+        section.type = delim.type;
+        section.data = delim.parse(section_string.substr(delim.string.length));
 
         return section;
     }
@@ -167,9 +171,7 @@ class ChatParser {
             string: "",
             type: "text",
             data: section_string,
-            parse: (text_string) => {
-                return text_string;
-            }
+            parse: string => string
         };
 
         let d_len = delim.string.length;
