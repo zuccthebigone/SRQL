@@ -56,7 +56,7 @@ function regex_chain_surround_delims(surround_delims) {
             const char = string[i];
             escaped_delim_chars.push("\\" + char);
         }
-        let escaped_delim = escaped_delim_chars.join("");
+        const escaped_delim = escaped_delim_chars.join("");
 
         surround_delims_regex += `(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})|`
     });
@@ -78,7 +78,7 @@ function parse_chat(chat_string) {
 function parse_line(line_string) {
     let line = {};
 
-    let delim = line_string[0];
+    const delim = line_string[0];
     switch(delim) {
         case ">":
             line.type = "message";
@@ -100,9 +100,9 @@ function parse_line(line_string) {
 function parse_message(message_string) {
     let message = {};
 
-    let split_message = message_string.split(message_split_regex);
-    let user_string = split_message[1];
-    let body_string = split_message[2];
+    const split_message = message_string.split(message_split_regex);
+    const user_string = split_message[1];
+    const body_string = split_message[2];
 
     message.username = user_string.length == 0 ? username: user_string;
     message.body = parse_body(body_string);
@@ -124,11 +124,11 @@ function parse_meta(meta_string) {
 function parse_body(body_string) {
     let body = [];
 
-    let sections = body_string.split(new RegExp(delim_surround_regex, "ig"));
+    const sections = body_string.split(new RegExp(delim_surround_regex, "ig"));
 
     sections.forEach(section_string => {
         if (section_string === undefined || section_string.length == 0) return;
-        let is_start_section = section_string[0] != section_string[section_string.length - 1];
+        const is_start_section = section_string[0] != section_string[section_string.length - 1];
         body.push(is_start_section ? parse_start_section(section_string) : parse_surround_section(section_string));
     });
 
@@ -139,7 +139,7 @@ function parse_body(body_string) {
 function parse_start_section(section_string) {
     let section = {};
 
-    let delim = body_delims.start.find(({ string }) => {
+    const delim = body_delims.start.find(({ string }) => {
         return section_string.substr(0, string.length) == string;
     }) ?? {
         string: "",
@@ -158,13 +158,13 @@ function parse_start_section(section_string) {
 function parse_surround_section(section_string) {
     let section = {};
 
-    let s_len = section_string.length;
-    let delim = body_delims.surround.find(({ string }) => {
+    const s_len = section_string.length;
+    const delim = body_delims.surround.find(({ string }) => {
 
-        let d_len = string.length;
+        const d_len = string.length;
 
-        let l_delim = section_string.substr(0, d_len);
-        let r_delim = section_string.substr(s_len - d_len);
+        const l_delim = section_string.substr(0, d_len);
+        const r_delim = section_string.substr(s_len - d_len);
 
         return l_delim == r_delim && r_delim == string;
     }) ?? {
@@ -174,7 +174,7 @@ function parse_surround_section(section_string) {
         parse: string => string
     };
 
-    let d_len = delim.string.length;
+    const d_len = delim.string.length;
     section.type = delim.type;
     section.data = delim.parse(section_string.substr(d_len, s_len - 2 * d_len));
 
@@ -185,7 +185,7 @@ function parse_surround_section(section_string) {
 function parse_file(file_string) {
     let file = {};
 
-    let is_file_string = file_string_test_regex.test(file_string);
+    const is_file_string = file_string_test_regex.test(file_string);
     
     if (!is_file_string) {
         file.dir = null;
@@ -195,8 +195,8 @@ function parse_file(file_string) {
     }
     
     // Splits the directory from the file and the filename from the extension
-    let path_components = file_string.split(file_path_split_regex);
-    let name_components = path_components[1].split(file_name_split_regex);
+    const path_components = file_string.split(file_path_split_regex);
+    const name_components = path_components[1].split(file_name_split_regex);
 
     file.dir = path_components[0];
     file.name = name_components[0];
