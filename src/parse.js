@@ -1,13 +1,13 @@
 // Regexs
-var message_split_regex = /([^:]*):(.*)/ig
+const message_split_regex = /([^:]*):(.*)/ig
 
-var file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
-var file_path_split_regex = /\\([^\\]*$)/ig
-var file_name_split_regex = /\.([^\.]*$)/ig
+const file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
+const file_path_split_regex = /\\([^\\]*$)/ig
+const file_name_split_regex = /\.([^\.]*$)/ig
 
 // Delimiters
 // MUST ORDER IN DESCENDING STRING LENGTH
-body_delims = {
+const body_delims = {
     surround: [
         {
             string: "~~",
@@ -45,7 +45,7 @@ body_delims = {
 };
 
 // Used to split surround sections
-var delim_surround_regex = regex_chain_surround_delims(body_delims.surround);
+const delim_surround_regex = regex_chain_surround_delims(body_delims.surround);
     
 function regex_chain_surround_delims(surround_delims) {
     let surround_delims_regex = "";
@@ -246,5 +246,6 @@ function parse_heading(heading_string) {
 }
 
 module.exports = {
-    parse_chat
+    parse_chat,
+    parse_line
 };
