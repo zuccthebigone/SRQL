@@ -403,7 +403,7 @@ body #srqls #current-srql smart-text {
   left: 0;
   bottom: 76px;
   right: 0;
-  padding: 24px 10%;
+  padding: 24px 60px;
   background-color: #f3f3f3;
 }
 
@@ -413,15 +413,36 @@ body #srqls #current-srql smart-text .message {
 }
 
 body #srqls #current-srql smart-text .message .file {
-  display: inline-block;
-  padding: 8px;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
   margin: 4px;
+  overflow: hidden;
+  background-color: white;
   border: 1.5px solid #ddd;
   border-radius: 6px;
-  background-color: #fff;
   color: #555;
   font-size: 12px;
   cursor: pointer;
+}
+
+body #srqls #current-srql smart-text .message .file i {
+  background-color: #4f4a80;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  line-height: 40px;
+  font-size: 18px;
+  color: white;
+}
+
+body #srqls #current-srql smart-text .message .file .name {
+  height: 40px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-radius: 6px 0 0 6px;
+  text-overflow: ellipsis;
+  line-height: 40px;
 }
 
 body #srqls #current-srql smart-text .message .text {
@@ -444,18 +465,20 @@ body #srqls #current-srql smart-input {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 76px;
-  background-color: #f3f3f3;
-}
-
-body #srqls #current-srql smart-input input {
-  width: 80%;
-  min-width: 550px;
   height: 46px;
+  margin: 15px 60px;
   border: 1px solid #ddd;
   border-radius: 6px;
   background-color: white;
-  padding-left: 46px;
+}
+
+body #srqls #current-srql smart-input input {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  height: 100%;
+  border: none;
+  background-color: transparent;
 }
 
 body #srqls #current-srql smart-input input:hover, body #srqls #current-srql smart-input input:focus {
@@ -463,11 +486,32 @@ body #srqls #current-srql smart-input input:hover, body #srqls #current-srql sma
 }
 
 body #srqls #current-srql smart-input i {
-  position: relative;
-  left: 28px;
+  width: 46px;
   height: 46px;
   line-height: 46px;
+  text-align: center;
   font-size: 20px;
   color: #4f4a80;
+}
+
+body #srqls #current-srql smart-input .autocomplete {
+  position: absolute;
+  bottom: 80%;
+  left: 46px;
+  margin: 0;
+  padding: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+}
+
+body #srqls #current-srql smart-input .autocomplete li {
+  display: block;
+  padding: 4px;
+  color: #888;
+  font-size: 14px;
+}
+
+body #srqls #current-srql smart-input .autocomplete li:hover, body #srqls #current-srql smart-input .autocomplete li.active {
+  color: black;
 }
 /*# sourceMappingURL=index.css.map */

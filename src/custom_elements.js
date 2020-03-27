@@ -1,5 +1,7 @@
 const { BrowserWindow } = require("electron").remote;
 window.$ = window.jQeury = require("jquery");
+const get_caret_pos = require("textarea-caret");
+const string_compare = require("string-similarity");
 
 class WindowFrame extends HTMLElement {
     constructor() {
@@ -216,30 +218,66 @@ class SRQLTile extends HTMLElement {
 class SmartText extends HTMLElement {
     constructor() {
         super();
+        this.file_icon = {
+            "txt": "fas fa-file-alt",
+            "py": "fas fa-file-code",
+            "js": "fas fa-file-code",
+            "css": "fas fa-file-code",
+            "folder": "fas fa-folder",
+            "file": "fas fa-file"
+        }
         this.chat_parser = new ChatParser();
         this.chat_string;
-        this.set_chat(`<t:\n>p4r17y817:Hello There\n>:Hi\n>:my name is Matthew\n>:^D:\\Documents\\Github\\SRQL\\src\\utils.js^ ^D:\\Documents\\Github\\SRQL\\src\\custom_elements.js^`);
+        this.set_chat(`<t:\n>p4r17y817:Hello There\n>:Hi\n>:my name is Matthew\n>:~~D:\\Documents\\Github\\SRQL\\src\\utils.js~~ ~~D:\\Documents\\Github\\SRQL\\src\\custom_elements.js~~`);
     }
 
     append_elems(chat_string) {
-        var chat_data = this.chat_parser.parse(chat_string);
+        var chat_data = this.chat_parser.parse_chat(chat_string);
+        chat_data.forEach(line => {
+            if (line.type == "message") {
+                let message_elem = document.createElement("span");
+                message_elem.className = "message";
+                line.data.body.forEach(section => {
+                    let section_elem = document.createElement("div");
+                    section_elem.className = section.type;
+                    switch (section.type) {
+                        case "text":
+                            section_elem.textContent = section.data;
+                            break;
 
-        chat_data.chat.forEach(message => {
-            let message_elem = document.createElement("span");
-            message_elem.className = "message";
-            message.body.forEach(section => {
-                let section_elem = document.createElement("div");
-                section_elem.className = section.type;
+                        case "file":
+                            let file_icon_elem = document.createElement("i");
+                            let file_name_elem = document.createElement("div");
 
-                if (section.type == "file") {
-                    section_elem.textContent = section.data.path;
-                } else {
-                    section_elem.textContent = section.data;
-                }
-                message_elem.appendChild(section_elem);
-            });
-            this.appendChild(message_elem);
-        });
+                            file_name_elem.className = "name";
+
+                            console.log(section);
+
+                            if (section.data.ext == null) {
+                                if (section.data.dir != null && section.data.name != null) {
+                                    file_icon_elem.className = this.file_icon["folder"];
+                                    file_name_elem.textContent = section.data.dir + "\\" + section.data.name;
+                                } else {
+                                    file_icon_elem.className = this.file_icon["file"];
+                                    file_name_elem.textContent = "File Not Found";
+                                }
+                            } else {
+                                file_icon_elem.className = this.file_icon[section.data.ext];
+                                file_name_elem.textContent = section.data.name + "." + section.data.ext;
+                            }
+                            
+                            section_elem.appendChild(file_icon_elem);
+                            section_elem.appendChild(file_name_elem);
+                            break;
+
+                        default:
+                            break;
+                    }
+                    message_elem.appendChild(section_elem);
+                });
+                this.appendChild(message_elem);
+            }
+        })
     }
 
     set_chat(chat_string) {
@@ -263,13 +301,85 @@ class SmartInput extends HTMLElement {
         var indicator_elem = document.createElement("i");
         indicator_elem.className = "fas fa-angle-right";
 
+        var autocomplete_elem = document.createElement("ul");
+        autocomplete_elem.className = "autocomplete";
+
+        var keywords = ["abstract", "arguments", "await", "boolean", "break", "byte", "case", "catch", "char", "class", "const", "continue", "debugger", "default", "delete", "do", "double", "else", "enum", "eval", "export", "extends", "false", "final", "finally", "float", "for", "function", "goto", "if", "implements", "import", "in", "instanceof", "int", "interface", "let", "long", "native", "new", "null", "package", "private", "protected", "public", "return", "short", "static", "super", "switch", "synchronized", "this", "throw", "throws", "transient", "true", "try", "typeof", "var", "void", "volatile", "while", "with", "yield"];
+
+        var autocomplete_matches = [];
+        var autocomplete_select = null;
+
         this.appendChild(indicator_elem);
         this.appendChild(input_elem);
+        this.appendChild(autocomplete_elem);
 
-        this.addEventListener("keypress", event => {
-            if (event.key == "Enter") {
-                $("#current-srql smart-text")[0].append_message("\n>:" + input_elem.value);
-                input_elem.value = "";
+        function input() {
+            let before_selection = input_elem.value.substr(0, input_elem.selectionStart);
+            let after_selection = input_elem.value.substr(input_elem.selectionEnd);
+
+            let word_start = before_selection.split(/(\w*\s*)*([^\s]*$)/ig).filter(string => { return string !== "" })[0] || "";
+            let word_end = after_selection.split(/(^[^\s]*)/i).filter(string => { return string !== "" })[0] || "";
+
+            let word = word_start + word_end;
+
+            let matches = string_compare.findBestMatch(word, keywords).ratings.sort((a, b) => (a.rating > b.rating) ? 1 : -1).filter(({ rating }) => { return rating >= 0.1 });
+
+            autocomplete_elem.innerHTML = "";
+
+            autocomplete_matches = [];
+
+            matches.forEach(({ target }) => {
+                autocomplete_matches.push(target);
+            });
+
+            autocomplete_matches.forEach(match => {
+                let word_elem = document.createElement("li");
+                word_elem.textContent = match;
+                autocomplete_elem.appendChild(word_elem);
+            });
+
+            let input_string = input_elem.value;
+            let caret_pos = get_caret_pos(input_elem, input_elem.selectionStart);
+            autocomplete_elem.style.transform = `translate(${caret_pos.left}px)`;
+        }
+
+        this.addEventListener("input", input);
+
+        this.addEventListener("keydown", event => {
+            if (event.key == "ArrowUp") {
+                event.preventDefault();
+                if (autocomplete_select == null) {
+                    autocomplete_select = autocomplete_matches.length - 1;
+                } else {
+                    autocomplete_elem.children[autocomplete_select].className = "";
+                    autocomplete_select --;
+                }
+                if (autocomplete_select < 0) autocomplete_select = autocomplete_matches.length - 1;
+                autocomplete_elem.children[autocomplete_select].className = "active";
+            } else if (event.key == "ArrowDown") {
+                event.preventDefault();
+                if (autocomplete_select == null) {
+                    autocomplete_select = 0;
+                } else {
+                    autocomplete_elem.children[autocomplete_select].className = "";
+                    autocomplete_select ++;
+                }
+                autocomplete_select %= autocomplete_matches.length;
+                autocomplete_elem.children[autocomplete_select].className = "active";
+            } else if (event.key == "Enter" || event.key == "Tab") {
+                if (event.key == "Tab") event.preventDefault();
+                if (autocomplete_select === null || autocomplete_select < 0) {
+                    if (event.key == "Enter") {
+                        $("#current-srql smart-text")[0].append_message("\n>:" + input_string);
+                        input_elem.value = "";
+                        autocomplete_select = null;
+                    }
+                } else {
+                    input_elem.value += autocomplete_matches[autocomplete_select] + " ";
+                    autocomplete_elem.children[autocomplete_select].className = "";
+                    autocomplete_select = null;
+                    input();
+                }
             }
         });
     }
