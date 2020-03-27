@@ -1,67 +1,71 @@
-class ChatParser {
+// Regexs
+var message_split_regex = /([^:]*):(.*)/ig
 
-    // Sets up parsing strings and parsing-metadata
+var file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
+var file_path_split_regex = /\\([^\\]*$)/ig
+var file_name_split_regex = /\.([^\.]*$)/ig
+
+class ChatParser {
+    
     constructor() {
 
-        // Valid username
-        this.username_regex = "[a-z0-9\-_]*";
-
-        // Valid file path
-        this.file_path_regex = "\\\^[a-z]:\\\\(?:[a-z0-9_\\\-\\\s]*\\\\)*[a-z0-9_\\\-\\\s]*.(?:js|txt|py)\\\^";
-
+        // Delimiters
+        // MUST ORDER IN DESCENDING STRING LENGTH
         this.body_delims = {
             surround: [
                 {
-                    delim: "~~",
+                    string: "~~",
                     type: "file",
                     parse: this.parse_file
                 },
                 {
-                    delim: "*",
+                    string: "*",
                     type: "bold",
                     parse: this.parse_bold
                 },
                 {
-                    delim: "_",
+                    string: "_",
                     type: "italic",
                     parse: this.parse_italic
                 },
                 {
-                    delim: "~",
+                    string: "~",
                     type: "strikethrough",
                     parse: this.parse_strikethrough
                 },
                 {
-                    delim: "`",
+                    string: "`",
                     type: "code",
                     parse: this.parse_code
                 }
             ],
             start: [
                 {
-                    delim: "#",
+                    string: "#",
                     type: "heading",
                     parse: this.parse_heading
                 }
             ]
         };
 
-        this.delim_surround_regex = "";
-        this.body_delims.surround.forEach(delim_obj => {
-
-            let delim = delim_obj.delim;
-
+        // Used to split surround sections
+        this.delim_surround_regex = this.regex_chain_surround_delims(this.body_delims.surround);
+    }
+    
+    regex_chain_surround_delims(surround_delims) {
+        let surround_delims_regex = "";
+        surround_delims.forEach(({ string }) => {
+    
             let escaped_delim_chars = [];
-            for (let i = 0; i < delim.length; i++) {
-                const char = delim[i];
+            for (let i = 0; i < string.length; i++) {
+                const char = string[i];
                 escaped_delim_chars.push("\\" + char);
             }
-
             let escaped_delim = escaped_delim_chars.join("");
-            this.delim_surround_regex += `(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})|`
+    
+            surround_delims_regex += `(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})|`
         });
-
-        this.delim_surround_regex = this.delim_surround_regex.substr(0, this.delim_surround_regex.length - 1);
+        return surround_delims_regex.substr(0, surround_delims_regex.length - 1);
     }
 
     // Returns a chat object describing the chat contents
@@ -71,6 +75,7 @@ class ChatParser {
         chat_string.split("\n").forEach(line_string => {
             chat.push(this.parse_line(line_string));
         });
+
         return chat;
     }
 
@@ -81,11 +86,12 @@ class ChatParser {
         switch(delim) {
             case ">":
                 line.type = "message";
-                line.data = this.parse_message(line_string.substr(1, line_string.length));
+                line.data = this.parse_message(line_string.substr(1));
                 break;
             case "<":
                 line.type = "meta";
-                line.data = this.parse_meta(line_string.substr(1, line_string.length));
+                line.data = this.parse_meta(line_string.substr(1));
+                break;
             default:
                 line.type = "unknown";
                 line.data = {};
@@ -97,16 +103,11 @@ class ChatParser {
     parse_message(message_string) {
         let message = {};
 
-        let matches = message_string.split(new RegExp("([^:]*):(.*)", "ig"));
-        let user_string = matches[1];
-        let body_string = matches[2];
+        let split_message = message_string.split(message_split_regex);
+        let user_string = split_message[1];
+        let body_string = split_message[2];
 
-        if (user_string.length == 0) {
-            message.username = username;
-        } else {
-            message.username = user_string;
-        }
-
+        message.username = user_string.length == 0 ? username: user_string;
         message.body = this.parse_body(body_string);
 
         return message;
@@ -114,6 +115,9 @@ class ChatParser {
 
     parse_meta(meta_string) {
         let meta = {};
+
+        // TODO: split meta into sections and parse them
+        meta.data = meta_string;
 
         return meta;
     }
@@ -124,13 +128,9 @@ class ChatParser {
         let sections = body_string.split(new RegExp(this.delim_surround_regex, "ig"));
 
         sections.forEach(section_string => {
-            if (section_string === undefined) return;
-            if (section_string.length == 0) return;
-            if (section_string[0] != section_string[section_string.length - 1]) {
-                body.push(this.parse_start_section(section_string));
-            } else {
-                body.push(this.parse_surround_section(section_string));
-            }
+            if (section_string === undefined || section_string.length == 0) return;
+            let is_start_section = section_string[0] != section_string[section_string.length - 1];
+            body.push(is_start_section ? this.parse_start_section(section_string) : this.parse_surround_section(section_string));
         });
 
         return body;
@@ -139,62 +139,64 @@ class ChatParser {
     parse_start_section(section_string) {
         let section = {};
 
-        let delim_obj = this.body_delims.start.find(({ delim }) => {
-            return section_string.substr(0, delim.length) == delim;
+        let delim_obj = this.body_delims.start.find(({ string }) => {
+            return section_string.substr(0, string.length) == string;
         });
 
-        if (delim_obj === undefined) {
-            section.type = "text";
-            section.data = section_string;
-        } else {
-            section.type = delim_obj.type;
-            section.data = delim_obj.parse(section_string.substr(delim_obj.delim.length, section_string.length));
-        }
+        let delim_found = delim_obj !== undefined;
+        section.type = delim_found ? delim_obj.type : "text";
+        section.data = delim_found ? delim_obj.parse(section_string.substr(delim_obj.string.length)) : section_string;
 
         return section;
     }
 
+    // Returns a section object representing the section string
     parse_surround_section(section_string) {
         let section = {};
 
-        let section_len = section_string.length;
-        let delim_obj = this.body_delims.surround.find(delim_obj => {
+        let s_len = section_string.length;
+        let delim = this.body_delims.surround.find(({ string }) => {
 
-            let delim = delim_obj.delim;
-            let delim_len = delim.length;
+            let d_len = string.length;
 
-            let left_delim = section_string.substr(0, delim_len);
-            let right_delim = section_string.substr(section_len - delim_len, section_len);
+            let l_delim = section_string.substr(0, d_len);
+            let r_delim = section_string.substr(s_len - d_len);
 
-            return left_delim == right_delim && right_delim == delim;
-        });
+            return l_delim == r_delim && r_delim == string;
+        }) ?? {
+            string: "",
+            type: "text",
+            data: section_string,
+            parse: (text_string) => {
+                return text_string;
+            }
+        };
 
-        if (delim_obj === undefined) {
-            section.type = "text";
-            section.data = section_string;
-        } else {
-            let delim_len = delim_obj.delim.length;
-            section.type = delim_obj.type;
-            section.data = delim_obj.parse(section_string.substr(delim_len, section_len - 2 * delim_len));
-        }
+        let d_len = delim.string.length;
+        section.type = delim.type;
+        section.data = delim.parse(section_string.substr(d_len, s_len - 2 * d_len));
 
         return section;
     }
 
+    // Returns a file object representing the file string
     parse_file(file_string) {
         let file = {};
 
-        if (!(/[a-z]:\\([^\\\w]*\\)*[^\.]*/i.test(file_string))) {
-            console.log(file_string);
+        let is_file_string = file_string_test_regex.test(file_string);
+        
+        if (!is_file_string) {
             file.dir = null;
             file.name = null;
             file.ext = null;
             return file;
         }
+        
+        // Splits the directory from the file and the filename from the extension
+        let path_components = file_string.split(file_path_split_regex);
+        let name_components = path_components[1].split(file_name_split_regex);
 
-        let path_components = file_string.split(/\\([^\\]*$)/ig);
         file.dir = path_components[0];
-        let name_components = path_components[1].split(/\.([^\.]*$)/ig);
         file.name = name_components[0];
         file.ext = name_components[1];
 
