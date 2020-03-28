@@ -426,7 +426,7 @@ body #srqls #current-srql smart-text .message .file {
   cursor: pointer;
 }
 
-body #srqls #current-srql smart-text .message .file i {
+body #srqls #current-srql smart-text .message .file .file-icon {
   background-color: #4f4a80;
   height: 40px;
   width: 40px;
@@ -436,7 +436,7 @@ body #srqls #current-srql smart-text .message .file i {
   color: white;
 }
 
-body #srqls #current-srql smart-text .message .file .name {
+body #srqls #current-srql smart-text .message .file .file-name {
   height: 40px;
   padding: 0 8px;
   overflow: hidden;

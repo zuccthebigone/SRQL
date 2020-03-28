@@ -226,69 +226,109 @@ class SmartText extends HTMLElement {
             "folder": "fas fa-folder",
             "file": "fas fa-file"
         }
-        this.chat_parser = new ChatParser();
-        this.chat_string;
-        this.set_chat(`<t:\n>p4r17y817:Hello There\n>:Hi\n>:my name is Matthew\n>:~~D:\\Documents\\Github\\SRQL\\src\\utils.js~~ ~~D:\\Documents\\Github\\SRQL\\src\\custom_elements.js~~`);
+        this.chat = {};
+        this.load_chat(`<t:\n>p4r17y817:Hello There\n>:Hi\n>:my name is Matthew\n>:~~D:\\Documents\\Github\\SRQL\\src\\utils.js~~ ~~D:\\Documents\\Github\\SRQL\\src\\custom_elements.js~~`);
     }
 
-    append_elems(chat_string) {
-        var chat_data = this.chat_parser.parse_chat(chat_string);
-        chat_data.forEach(line => {
-            if (line.type == "message") {
-                let message_elem = document.createElement("span");
-                message_elem.className = "message";
-                line.data.body.forEach(section => {
-                    let section_elem = document.createElement("div");
-                    section_elem.className = section.type;
-                    switch (section.type) {
-                        case "text":
-                            section_elem.textContent = section.data;
-                            break;
-
-                        case "file":
-                            let file_icon_elem = document.createElement("i");
-                            let file_name_elem = document.createElement("div");
-
-                            file_name_elem.className = "name";
-
-                            console.log(section);
-
-                            if (section.data.ext == null) {
-                                if (section.data.dir != null && section.data.name != null) {
-                                    file_icon_elem.className = this.file_icon["folder"];
-                                    file_name_elem.textContent = section.data.dir + "\\" + section.data.name;
-                                } else {
-                                    file_icon_elem.className = this.file_icon["file"];
-                                    file_name_elem.textContent = "File Not Found";
-                                }
-                            } else {
-                                file_icon_elem.className = this.file_icon[section.data.ext];
-                                file_name_elem.textContent = section.data.name + "." + section.data.ext;
-                            }
-                            
-                            section_elem.appendChild(file_icon_elem);
-                            section_elem.appendChild(file_name_elem);
-                            break;
-
-                        default:
-                            break;
-                    }
-                    message_elem.appendChild(section_elem);
-                });
-                this.appendChild(message_elem);
-            }
-        })
-    }
-
-    set_chat(chat_string) {
-        this.chat_string = chat_string;
+    load_chat(chat_string) {
         this.innerHTML = "";
-        this.append_elems(this.chat_string);
+        this.chat = parse_chat(chat_string);
+        this.render_chat(this.chat);
     }
 
-    append_message(chat_string) {
-        this.chat_string += chat_string;
-        this.append_elems(chat_string);
+    render_chat(chat) {
+        chat.forEach(line => {
+            let line_elem;
+            switch (line.type) {
+                case "message":
+                    line_elem = this.render_message(line.message);
+                    break;
+                case "meta":
+                    line_elem = this.render_meta(line.meta);
+                    break;
+                case "unknown":
+                    line_elem = this.render_unknown(line.data);
+                default:
+                    return;
+            }
+            this.appendChild(line_elem);
+        });
+    }
+
+    render_message(message) {
+        let message_elem = document.createElement("span");
+        message_elem.className = "message";
+
+        message.body.forEach(section => {
+            message_elem.appendChild(this.render_section(section));
+        });
+
+        return message_elem;
+    }
+
+    render_meta(meta) {
+        let meta_elem = document.createElement("span");
+        meta_elem.className = "meta";
+
+        return meta_elem;
+    }
+
+    render_unknown(data) {
+        let unknown_elem = document.createElement("span");
+        unknown_elem.className = "unknown";
+
+        return unknown_elem;
+    }
+
+    render_section(section) {
+        let section_elem;
+        switch(section.type) {
+            case "text":
+                section_elem = this.render_text(section.data);
+                break;
+            case "file":
+                section_elem = this.render_file(section.data);
+                break;
+            default:
+                section_elem = this.render_text(section.data);
+        }
+
+        return section_elem;
+    }
+
+    render_text(text) {
+        let text_elem = document.createElement("div");
+        text_elem.className = "text";
+
+        text_elem.textContent = text;
+
+        return text_elem;
+    }
+
+    render_file(file) {
+        let file_elem = document.createElement("div");
+        file_elem.className = "file";
+
+        let icon_elem = document.createElement("i");
+        icon_elem.className = "file-icon ";
+        let name_elem = document.createElement("div");
+        name_elem.className = "file-name";
+
+        const not_file = file.ext === "";
+        const file_exists = file.dir !== "" && file.name !== "";
+        icon_elem.classList += not_file ? (file_exists ? this.file_icon["file"] : this.file_icon["folder"]) : this.file_icon[file.ext];
+        name_elem.textContent = not_file ? (file_exists ? file.dir + "\\" + file.name : "File Not Found") : file.name + "." + file.ext;
+
+        file_elem.appendChild(icon_elem);
+        file_elem.appendChild(name_elem);
+
+        return file_elem;
+    }
+
+    add_line(line_string) {
+        const line = parse_line(line_string);
+        this.chat.push(line);
+        this.appendChild(render_line(line));
     }
 }
 
