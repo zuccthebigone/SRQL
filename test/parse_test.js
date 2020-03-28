@@ -43,7 +43,7 @@ describe("parse.js", function() {
 
     describe("#parse_line", function() {
         it("Handles empty string: ''", function() {
-            assert.deepEqual(parse_line(""), { type: "unknown" });
+            assert.deepEqual(parse_line(""), { type: "unknown", data: "" });
         });
 
         it("Handles empty message line: '>'", function () {
