@@ -90,6 +90,7 @@ function parse_line(line_string) {
             break;
         default:
             line.type = "unknown";
+            line.data = line_string;
     }
 
     return line;
