@@ -378,7 +378,7 @@ body {
             font-size: 12px;
             cursor: pointer;
 
-            i {
+            .file-icon {
               background-color: #4f4a80;
               height: 40px;
               width: 40px;
@@ -388,7 +388,7 @@ body {
               color: white;
             }
 
-            .name {
+            .file-name {
               height: 40px;
               // width: 200px;
               padding: 0 8px;
