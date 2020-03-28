@@ -4,6 +4,18 @@ A P2P file sharing platform for students.
 
 ## Installation
 
+## Dependencies
+Dev | Version | Package
+-- | -- | --
+✓ | 8.1.1 | electron
+✗ | 3.4.1 | jquery
+✗ | 7.18.2 | pg
+✗ | 7.0.2 | uuid
+✗ | 4.0.1 | string-similarity
+✗ | 3.1.0 | textarea-caret
+✓ | 2.0.10 | csvtojson
+✓ | 7.1.1 | mocha
+✓ | 5.0.0 | rewire
 
 
 ## Info
