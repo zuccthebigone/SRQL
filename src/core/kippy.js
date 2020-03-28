@@ -10,13 +10,10 @@ class Kippy {
         this.container = document.createElement(this.type);
         this.container.className = this.name;
         
-        const is_root = parent === null;
-        if (is_root) {
-            this.parent.appendChild(this.container);
-        } else {
-            this.parent.children.push(this);
-            this.parent.container.appendChild(this.container);
-        }
+        this.parent.appendChild(this.container);
+
+        const not_root = parent !== null;
+        if (not_root) this.parent.children.push(this);
 
         this.initialise();
         this.update();
@@ -41,6 +38,10 @@ class Kippy {
                 }
             });
         });
+    }
+
+    appendChild(child) {
+        this.container.appendChild(child);
     }
 
     initialise() {

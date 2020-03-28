@@ -26,7 +26,7 @@ class TitleBar extends Kippy {
 
         this.settings = document.createElement("i");
         this.settings.className = "fas fa-cog settings";
-        this.container.appendChild(this.settings);
+        this.appendChild(this.settings);
 
         this.minimize = document.createElement("button");
         this.minimize.innerHTML = `<i class="fas fa-minus"></i>`;
@@ -47,9 +47,9 @@ class TitleBar extends Kippy {
         this.close.innerHTML = `<i class="fas fa-times"></i>`;
         this.close.addEventListener("click", () => { this.window.close() });
 
-        this.container.appendChild(this.close);
-        this.container.appendChild(this.restore);
-        this.container.appendChild(this.minimize);
+        this.appendChild(this.close);
+        this.appendChild(this.restore);
+        this.appendChild(this.minimize);
 
         this.srql_search = new SrqlSearch(this);
     }
