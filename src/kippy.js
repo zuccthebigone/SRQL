@@ -1,11 +1,25 @@
 class Kippy {
-    constructor(parent = null, name = null) {
-        this.parent = parent;
+    constructor(parent = null, type = "div", name = null) {
+        this.parent = parent || document.body;
+        this.type = type;
         this.name = name || this.constructor.name.toLowerCase();
         this.children = [];
-        if (this.parent) this.parent.children.push(this);
-
+        
         this._state;
+        
+        this.container = document.createElement(this.type);
+        this.container.className = this.name;
+        
+        const is_root = parent === null;
+        if (is_root) {
+            this.parent.appendChild(this.container);
+        } else {
+            this.parent.children.push(this);
+            this.parent.container.appendChild(this.container);
+        }
+
+        this.initialise();
+        this.update();
     }
 
     get state() {
@@ -23,32 +37,26 @@ class Kippy {
                 },
                 set: (value) => {
                     n_value = value;
-                    this.render();
+                    this.update_children();
                 }
             });
         });
-
-        this.render();
     }
 
-    render_content(container) {
-        return container;
+    initialise() {
+
     }
 
-    render() {
-        const container = document.createElement("div");
-        container.className = this.name;
-        this.render_content(container);
+    update() {
+        
+    }
+
+    update_children() {
+        this.update();
         
         this.children.forEach(child => {
-            child = child.render();
-            container.appendChild(child);
+            child = child.update_children();
         });
-
-        if (this.parent !== null) return container;
-
-        document.body.innerHTML = "";
-        document.body.appendChild(container);
     }
 }
 
