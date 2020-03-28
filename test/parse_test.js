@@ -134,8 +134,8 @@ describe("parse.js", function() {
             assert.deepEqual(parse_file(""), { dir: "", name: "", ext: "" });
         });
 
-        it("Handles forward slashes: 'A:\/a.a'", function() {
-            assert.deepEqual(parse_file("A:\/a.a"), { dir: "A:", name: "a", ext: "a" });
+        it("Handles forward slashes: 'A:/a.a'", function() {
+            assert.deepEqual(parse_file("A:/a.a"), { dir: "A:", name: "a", ext: "a" });
         });
 
         it("Handles '.'s in folder name: 'A:\\a.\\.a\\.\\a.a'", function () {
