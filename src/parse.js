@@ -1,5 +1,5 @@
 // Regexs
-const message_split_regex = /([^:]*):(.*)/ig
+const message_split_regex = /^([^:]*):(.*)$/ig
 
 const file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
 const file_path_split_regex = /\\([^\\]*$)/ig
@@ -66,8 +66,8 @@ function regex_chain_surround_delims(surround_delims) {
 // Returns a list describing the chat contents
 function parse_chat(chat_string) {
     let chat = [];
-
     chat_string.split("\n").forEach(line_string => {
+        if (line_string === "") return;
         chat.push(parse_line(line_string));
     });
 
@@ -82,15 +82,15 @@ function parse_line(line_string) {
     switch(delim) {
         case ">":
             line.type = "message";
-            line.data = parse_message(line_string.substr(1));
+            line.message = parse_message(line_string.substr(1));
             break;
         case "<":
             line.type = "meta";
-            line.data = parse_meta(line_string.substr(1));
+            line.meta = parse_meta(line_string.substr(1));
             break;
         default:
             line.type = "unknown";
-            line.data = {};
+            line.data = line_string;
     }
 
     return line;
@@ -101,11 +101,11 @@ function parse_message(message_string) {
     let message = {};
 
     const split_message = message_string.split(message_split_regex);
-    const user_string = split_message[1];
-    const body_string = split_message[2];
+    const user_string = split_message[1] || split_message[0];
+    const body_string = split_message[2] || "";
 
-    message.username = user_string.length == 0 ? username: user_string;
-    message.body = parse_body(body_string);
+    message.username = user_string;
+    message.body = body_string === "" ? [] : parse_body(body_string);
 
     return message;
 }
@@ -125,7 +125,6 @@ function parse_body(body_string) {
     let body = [];
 
     const sections = body_string.split(new RegExp(delim_surround_regex, "ig"));
-
     sections.forEach(section_string => {
         if (section_string === undefined || section_string.length == 0) return;
         const is_start_section = section_string[0] != section_string[section_string.length - 1];
@@ -141,7 +140,7 @@ function parse_start_section(section_string) {
 
     const delim = body_delims.start.find(({ string }) => {
         return section_string.substr(0, string.length) == string;
-    }) ?? {
+    }) || {
         string: "",
         type: "text",
         data: section_string,
@@ -167,7 +166,7 @@ function parse_surround_section(section_string) {
         const r_delim = section_string.substr(s_len - d_len);
 
         return l_delim == r_delim && r_delim == string;
-    }) ?? {
+    }) || {
         string: "",
         type: "text",
         data: section_string,
@@ -185,12 +184,12 @@ function parse_surround_section(section_string) {
 function parse_file(file_string) {
     let file = {};
 
+    file_string = file_string.replace("\/", "\\");
     const is_file_string = file_string_test_regex.test(file_string);
-    
     if (!is_file_string) {
-        file.dir = null;
-        file.name = null;
-        file.ext = null;
+        file.dir = "";
+        file.name = "";
+        file.ext = "";
         return file;
     }
     
@@ -198,9 +197,9 @@ function parse_file(file_string) {
     const path_components = file_string.split(file_path_split_regex);
     const name_components = path_components[1].split(file_name_split_regex);
 
-    file.dir = path_components[0];
-    file.name = name_components[0];
-    file.ext = name_components[1];
+    file.dir = path_components[0] || "";
+    file.name = name_components[0] || "";
+    file.ext = name_components[1] || "";
 
     return file;
 }
