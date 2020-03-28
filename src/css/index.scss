@@ -31,7 +31,14 @@ body {
     outline: none;
   }
 
-  window-frame {
+.window-frame {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  .title-bar {
     position: absolute;
     z-index: 9998;
     left: 0;
@@ -40,7 +47,7 @@ body {
     background-color: #4f4a80;
     text-align: center;
 
-    input {
+    .srql-search {
       width: 55%;
       max-width: 650px;
       height: 34px;
@@ -59,6 +66,26 @@ body {
       }
     }
 
+    .settings {
+      float: left;
+      -webkit-app-region: none;
+      width: 68px;
+      height: 48px;
+      background-color: transparent;
+      line-height: 48px;
+      color: white;
+      font-size: 16px;
+      border: none;
+      margin: 0;
+      cursor: pointer;
+      transition: transform .4s;
+
+      &:hover {
+        background-color: transparent;
+        transform: rotate(90deg);
+      }
+    }
+
     button {
       float: right;
       -webkit-app-region: none;
@@ -71,12 +98,6 @@ body {
       margin: 0;
       cursor: pointer;
 
-      &.options {
-        float: left;
-        width: 68px;
-        transition: transform .4s;
-      }
-
       &:hover {
         background-color: rgba(0, 0, 0, 0.1);
       }
@@ -85,16 +106,12 @@ body {
         background-color: rgba(0, 0, 0, 0.2);
       }
 
-      &.options:hover {
-        background-color: transparent;
-        transform: rotate(90deg);
-      }
-
       &.close:hover {
         background-color: #ff3f3f;
       }
     }
   }
+}
 
   page-select {
     position: absolute;
