@@ -23,14 +23,6 @@ async function test_data() {
             await query(q);
         }
     }
-    // srql_ids = [];
-
-    // for (let i = 0; i < srql_data.length; i++) {
-    //     let srql = srql_data[i];
-    //     await query(`SELECT create_srql ('${srql.name}', '${srql.owner_id}')`, res => {
-    //         srql_ids.push(res.rows[0].create_srql);
-    //     });
-    // }
 }
 
 async function authenticate(username, password) {

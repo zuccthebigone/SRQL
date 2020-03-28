@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const parser = require("csvtojson");
 const { Client } = require("pg");
+const { Kippy } = require("./kippy.js");
 
 const client = new Client({
     host: "localhost",
@@ -23,4 +24,17 @@ var password = "password123";
 async function query(q) {
     var res = await client.query(q);
     return res;
+}
+
+module.exports = {
+    uuid,
+    crypto,
+    fs,
+    parser,
+    client,
+    salt,
+    query,
+    Kippy,
+    username,
+    password
 }

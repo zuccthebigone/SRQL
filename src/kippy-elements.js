@@ -1,3 +1,4 @@
+const { Kippy } = require("./core/utils.js");
 const { BrowserWindow } = require("electron").remote;
 
 class WindowFrame extends Kippy {

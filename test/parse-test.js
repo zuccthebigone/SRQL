@@ -3,7 +3,7 @@ const assert = require("assert");
 const rewire = require("rewire");
 
 // Used to inform tests of unexposed module functions
-var parse = rewire("../src/parse.js");
+var parse = rewire("../src/core/parse.js");
 
 describe("parse.js", function() {
 
