@@ -143,7 +143,11 @@ describe("parse.js", function() {
         });
 
         it("Handles incorrect path format: 'a\\a.a'", function () {
-            assert.deepEqual(parse_file("a\\a.a"), { dir: "a\\a.a", name: "", ext: "" });
+            assert.deepEqual(parse_file("a\\a.a"), { dir: "", name: "", ext: "" });
+        });
+
+        it("Handles folder: 'A:\\a'", function () {
+            assert.deepEqual(parse_file("A:\\a"), { dir: "A:", name: "a", ext: "" });
         });
     })
 });
