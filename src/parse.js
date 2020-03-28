@@ -183,6 +183,7 @@ function parse_surround_section(section_string) {
 function parse_file(file_string) {
     let file = {};
 
+    file_string = file_string.replace("\/", "\\");
     const is_file_string = file_string_test_regex.test(file_string);
     if (!is_file_string) {
         file.dir = "";
@@ -195,9 +196,9 @@ function parse_file(file_string) {
     const path_components = file_string.split(file_path_split_regex);
     const name_components = path_components[1].split(file_name_split_regex);
 
-    file.dir = path_components[0];
-    file.name = name_components[0];
-    file.ext = name_components[1];
+    file.dir = path_components[0] || "";
+    file.name = name_components[0] || "";
+    file.ext = name_components[1] || "";
 
     return file;
 }
