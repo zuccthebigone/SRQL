@@ -7,23 +7,23 @@ var parse = rewire("../src/core/parse.js");
 
 describe("parse.js", function() {
 
-    const regex_chain_surround_delims = parse.__get__("regex_chain_surround_delims");
+    const regex_surround_delims = parse.__get__("regex_surround_delims");
 
-    describe("#regex_chain_surround_delims", function() {
+    describe("#regex_surround_delims", function() {
         it("Handles empty list", function() {
-            assert.equal(regex_chain_surround_delims([]), "");
+            assert.deepEqual(regex_surround_delims([]), []);
         });
 
         it("Handles single file delimiter '~~'", function () {
-            assert.equal(regex_chain_surround_delims([{ string: "~~", type: "file", parse: string => string }]), "(\\~\\~[^\\~]*\\~\\~)");
+            assert.deepEqual(regex_surround_delims([{ string: "~~", type: "file", parse: string => string }]), ["(\\~\\~[^\\~]*\\~\\~)"]);
         });
 
         it("Handles single strikethrough delimiter '~'", function () {
-            assert.equal(regex_chain_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }]), "(\\~[^\\~]*\\~)");
+            assert.deepEqual(regex_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }]), ["(\\~[^\\~]*\\~)"]);
         });
 
         it("Handles two delimiters '~' and '~~'", function () {
-            assert.equal(regex_chain_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }, { string: "~~", type: "file", parse: string => string }]), "(\\~[^\\~]*\\~)|(\\~\\~[^\\~]*\\~\\~)");
+            assert.deepEqual(regex_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }, { string: "~~", type: "file", parse: string => string }]), ["(\\~[^\\~]*\\~)", "(\\~\\~[^\\~]*\\~\\~)"]);
         });
     });
 
@@ -118,7 +118,7 @@ describe("parse.js", function() {
             assert.deepEqual(parse_surround_section(""), { type: "text", data: "" });
         });
 
-        it("Handles file surround section: '~~A:\\a.a~~'", function() {
+        it("Handles simple surround section: '~~A:\\a.a~~'", function() {
             assert.deepEqual(parse_surround_section("~~A:\\a.a~~"), { type: "file", data: { dir: "A:", name: "a", ext: "a" } });
         });
 

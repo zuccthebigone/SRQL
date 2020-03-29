@@ -1,71 +1,102 @@
-// Regexs
-const message_split_regex = /^([^:]*):(.*)$/ig
 
-const file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
-const file_path_split_regex = /\\([^\\]*$)/ig
-const file_name_split_regex = /\.([^\.]*$)/ig
-
-// Delimiters
-// MUST ORDER IN DESCENDING STRING LENGTH
-const body_delims = {
-    surround: [
-        {
-            string: "~~",
-            type: "file",
-            parse: parse_file
-        },
-        {
-            string: "*",
-            type: "bold",
-            parse: parse_bold
-        },
-        {
-            string: "_",
-            type: "italic",
-            parse: parse_italic
-        },
-        {
-            string: "~",
-            type: "strikethrough",
-            parse: parse_strikethrough
-        },
-        {
-            string: "`",
-            type: "code",
-            parse: parse_code
-        }
-    ],
-    start: [
-        {
-            string: "#",
-            type: "heading",
-            parse: parse_heading
-        }
-    ]
+// --------------------------- DELIMITERS ---------------------------
+const delims = {
+    body: {
+        start: [
+            {
+                type: "heading",
+                string: "#",
+                parse: parse_heading,
+            },
+        ],
+        surround: [
+            {
+                type: "file",
+                string: "~~",
+                parse: parse_file,
+            },
+            {
+                type: "bold",
+                string: "*",
+                parse: parse_bold,
+            },
+            {
+                type: "italic",
+                string: "_",
+                parse: parse_italic,
+            },
+            {
+                type: "strikethrough",
+                string: "~",
+                parse: parse_strikethrough,
+            },
+            {
+                type: "code",
+                string: "`",
+                parse: parse_code,
+            },
+        ],
+    },
 };
 
-// Used to split surround sections
-const delim_surround_regex = regex_chain_surround_delims(body_delims.surround);
-    
-function regex_chain_surround_delims(surround_delims) {
-    let surround_delims_regex = "";
-    surround_delims.forEach(({ string }) => {
+// --------------------------- REGEXES ---------------------------
 
-        let escaped_delim_chars = [];
-        for (let i = 0; i < string.length; i++) {
-            const char = string[i];
-            escaped_delim_chars.push("\\" + char);
-        }
-        const escaped_delim = escaped_delim_chars.join("");
+const regex = {
+    message_split: /^([^:]*):(.*)$/ig,
+    file_string_test: /[a-z]:\\([^\\\w]*\\)*[^\.]*/i,
+    file_path_split: /\\([^\\]*$)/ig,
+    file_name_split: /\.([^\.]*$)/ig,
+    delims_start: regex_start_delims(delims.body.surround),
+    delims_surround: regex_surround_delims(delims.body.surround),
+};
+regex.delim_start = regex.delims_start.join("|");
+regex.delim_surround = regex.delims_surround.join("|");
+regex.delim_combined = `${regex.delim_start}|${regex.delim_surround}`;
 
-        surround_delims_regex += `(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})|`
-    });
-    return surround_delims_regex.substr(0, surround_delims_regex.length - 1);
+// Returns a list of escaped string characters
+function escape_chars(string) {
+    let escaped_chars = [];
+
+    for (let i = 0; i < string.length; i++) {
+        const char = string[i];
+        escaped_chars.push("\\" + char);
+    }
+
+    return escaped_chars;
 }
+
+// Returns a list of surround delimiter regexes
+function regex_start_delims(start_delims) {
+    let start_delims_regexs = [];
+
+    start_delims.forEach(({ string }) => {
+        const escaped_delim_chars = escape_chars(string);
+        const escaped_delim = escaped_delim_chars.join("");
+        start_delims_regexs.push(`(${escaped_delim}\s[^${escaped_delim_chars[0]}].*)`);
+    });
+
+    return start_delims_regexs;
+}
+
+// Returns a list of surround delimiter regexes
+function regex_surround_delims(surround_delims) {
+    let surround_delims_regexs = [];
+
+    surround_delims.forEach(({ string }) => {
+        const escaped_delim_chars = escape_chars(string);
+        const escaped_delim = escaped_delim_chars.join("");
+        surround_delims_regexs.push(`(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})`);
+    });
+
+    return surround_delims_regexs;
+}
+
+// --------------------------- PARSING ---------------------------
 
 // Returns a list describing the chat contents
 function parse_chat(chat_string) {
     let chat = [];
+
     chat_string.split("\n").forEach(line_string => {
         if (line_string === "") return;
         chat.push(parse_line(line_string));
@@ -100,7 +131,7 @@ function parse_line(line_string) {
 function parse_message(message_string) {
     let message = {};
 
-    const split_message = message_string.split(message_split_regex);
+    const split_message = message_string.split(regex.message_split);
     const user_string = split_message[1] || split_message[0];
     const body_string = split_message[2] || "";
 
@@ -124,7 +155,7 @@ function parse_meta(meta_string) {
 function parse_body(body_string) {
     let body = [];
 
-    const sections = body_string.split(new RegExp(delim_surround_regex, "ig"));
+    const sections = body_string.split(new RegExp(regex.delim_combined, "ig"));
     sections.forEach(section_string => {
         if (section_string === undefined || section_string.length == 0) return;
         const is_start_section = section_string[0] != section_string[section_string.length - 1];
@@ -138,7 +169,7 @@ function parse_body(body_string) {
 function parse_start_section(section_string) {
     let section = {};
 
-    const delim = body_delims.start.find(({ string }) => {
+    const delim = delims.body.start.find(({ string }) => {
         return section_string.substr(0, string.length) == string;
     }) || {
         string: "",
@@ -158,14 +189,14 @@ function parse_surround_section(section_string) {
     let section = {};
 
     const s_len = section_string.length;
-    const delim = body_delims.surround.find(({ string }) => {
+    const delim = delims.body.surround.find(({ string }) => {
 
         const d_len = string.length;
 
         const l_delim = section_string.substr(0, d_len);
         const r_delim = section_string.substr(s_len - d_len);
 
-        return l_delim == r_delim && r_delim == string;
+        return l_delim === r_delim && r_delim === string;
     }) || {
         string: "",
         type: "text",
@@ -185,7 +216,7 @@ function parse_file(file_string) {
     let file = {};
 
     file_string = file_string.replace("\/", "\\");
-    const is_file_string = file_string_test_regex.test(file_string);
+    const is_file_string = regex.file_string_test.test(file_string);
     if (!is_file_string) {
         file.dir = "";
         file.name = "";
@@ -194,8 +225,8 @@ function parse_file(file_string) {
     }
     
     // Splits the directory from the file and the filename from the extension
-    const path_components = file_string.split(file_path_split_regex);
-    const name_components = path_components[1].split(file_name_split_regex);
+    const path_components = file_string.split(regex.file_path_split);
+    const name_components = path_components[1].split(regex.file_name_split);
 
     file.dir = path_components[0] || "";
     file.name = name_components[0] || "";
