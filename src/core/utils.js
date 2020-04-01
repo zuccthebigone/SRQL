@@ -21,9 +21,15 @@ var user_id;
 var username = "zuccthebigone";
 var password = "password123";
 
-async function query(q) {
+async function query(q, callback) {
+    if (!client._connected) await client.connect();
     var res = await client.query(q);
+    if (callback != null) callback(res);
     return res;
+}
+
+function hash_password(password) {
+    return crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex");
 }
 
 module.exports = {
@@ -31,10 +37,7 @@ module.exports = {
     crypto,
     fs,
     parser,
-    client,
-    salt,
+    hash_password,
     query,
-    Kippy,
-    username,
-    password
+    Kippy
 }

@@ -13,6 +13,7 @@ class Kippy {
         this.parent.appendChild(this.container);
 
         const not_root = parent !== null;
+        this.root = not_root ? this.parent.root : this;
         if (not_root) this.parent.children.push(this);
 
         this.initialise();
