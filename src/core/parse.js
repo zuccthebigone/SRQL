@@ -1,78 +1,89 @@
-// Regexs
-const message_split_regex = /^([^:]*):(.*)$/ig
 
-const file_string_test_regex = /[a-z]:\\([^\\\w]*\\)*[^\.]*/i
-const file_path_split_regex = /\\([^\\]*$)/ig
-const file_name_split_regex = /\.([^\.]*$)/ig
+// --------------------------- DELIMITERS ---------------------------
 
-// Delimiters
-// MUST ORDER IN DESCENDING STRING LENGTH
-const body_delims = {
-    surround: [
-        {
-            string: "~~",
-            type: "file",
-            parse: parse_file
-        },
-        {
-            string: "*",
-            type: "bold",
-            parse: parse_bold
-        },
-        {
-            string: "_",
-            type: "italic",
-            parse: parse_italic
-        },
-        {
-            string: "~",
-            type: "strikethrough",
-            parse: parse_strikethrough
-        },
-        {
-            string: "`",
-            type: "code",
-            parse: parse_code
-        }
-    ],
-    start: [
-        {
-            string: "#",
-            type: "heading",
-            parse: parse_heading
-        }
-    ]
+const delims = {
+    body: {
+        start: [
+            {
+                type: "heading1",
+                string: "#",
+                parse: parse_heading1,
+            },
+            {
+                type: "heading2",
+                string: "##",
+                parse: parse_heading2,
+            },
+        ],
+        surround: [
+            {
+                type: "file",
+                string: "~~",
+                parse: parse_file,
+            },
+            {
+                type: "bold",
+                string: "*",
+                parse: parse_bold,
+            },
+            {
+                type: "italic",
+                string: "_",
+                parse: parse_italic,
+            },
+            {
+                type: "strikethrough",
+                string: "~",
+                parse: parse_strikethrough,
+            },
+            {
+                type: "code",
+                string: "`",
+                parse: parse_code,
+            },
+        ],
+    },
 };
 
-// Used to split surround sections
-const delim_surround_regex = regex_chain_surround_delims(body_delims.surround);
-    
-function regex_chain_surround_delims(surround_delims) {
-    let surround_delims_regex = "";
-    surround_delims.forEach(({ string }) => {
+// --------------------------- REGEXES ---------------------------
 
-        let escaped_delim_chars = [];
-        for (let i = 0; i < string.length; i++) {
-            const char = string[i];
-            escaped_delim_chars.push("\\" + char);
-        }
-        const escaped_delim = escaped_delim_chars.join("");
+const regex = {
+    message_split: /^([^:]*):(.*)$/ig,
+    file_string_test: /[a-z]:\\([^\\\w]*\\)*[^\.]*/i,
+    file_path_split: /\\([^\\]*$)/ig,
+    file_name_split: /\.([^\.]*$)/ig,
+    delims_start: delim_regexs(delims.body.surround, start_regex),
+    delims_surround: delim_regexs(delims.body.surround, surround_regex),
+};
 
-        surround_delims_regex += `(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})|`
-    });
-    return surround_delims_regex.substr(0, surround_delims_regex.length - 1);
+regex.delim_start = regex.delims_start.join("|");
+regex.delim_surround = regex.delims_surround.join("|");
+regex.delim_combined = `${regex.delim_start}|${regex.delim_surround}`;
+
+// Returns a list of escaped string characters
+function escape_chars(string) {
+    return string.split("").map(char => "\\" + char);
 }
 
-// Returns a list describing the chat contents
-function parse_chat(chat_string) {
-    let chat = [];
-    chat_string.split("\n").forEach(line_string => {
-        if (line_string === "") return;
-        chat.push(parse_line(line_string));
-    });
-
-    return chat;
+// Returns the regex for a start delimiter from its characters
+function start_regex(char_list) {
+    if (char_list.length == 0) throw new TypeError("Cannot chain list of no chars");
+    return `(${char_list.join("")}\s[^${char_list[0]}]*)`;
 }
+
+// Returns the regex for a surround delimiter from its characters
+function surround_regex(char_list) {
+    if (char_list.length == 0) throw new TypeError("Cannot chain list of no chars");
+    string = char_list.join("");
+    return `(${string}[^${char_list[0]}]*${string})`;
+}
+
+// Returns a list of delimiter regexes
+function delim_regexs(delims, prepare) { 
+    return delims.map(({ string }) => prepare(escape_chars(string)));
+}
+
+// --------------------------- PARSING ---------------------------
 
 // Returns a line object that describes the line string
 function parse_line(line_string) {
@@ -100,7 +111,7 @@ function parse_line(line_string) {
 function parse_message(message_string) {
     let message = {};
 
-    const split_message = message_string.split(message_split_regex);
+    const split_message = message_string.split(regex.message_split);
     const user_string = split_message[1] || split_message[0];
     const body_string = split_message[2] || "";
 
@@ -124,7 +135,7 @@ function parse_meta(meta_string) {
 function parse_body(body_string) {
     let body = [];
 
-    const sections = body_string.split(new RegExp(delim_surround_regex, "ig"));
+    const sections = body_string.split(new RegExp(regex.delim_combined, "ig"));
     sections.forEach(section_string => {
         if (section_string === undefined || section_string.length == 0) return;
         const is_start_section = section_string[0] != section_string[section_string.length - 1];
@@ -138,7 +149,7 @@ function parse_body(body_string) {
 function parse_start_section(section_string) {
     let section = {};
 
-    const delim = body_delims.start.find(({ string }) => {
+    const delim = delims.body.start.find(({ string }) => {
         return section_string.substr(0, string.length) == string;
     }) || {
         string: "",
@@ -158,14 +169,14 @@ function parse_surround_section(section_string) {
     let section = {};
 
     const s_len = section_string.length;
-    const delim = body_delims.surround.find(({ string }) => {
+    const delim = delims.body.surround.find(({ string }) => {
 
         const d_len = string.length;
 
         const l_delim = section_string.substr(0, d_len);
         const r_delim = section_string.substr(s_len - d_len);
 
-        return l_delim == r_delim && r_delim == string;
+        return l_delim === r_delim && r_delim === string;
     }) || {
         string: "",
         type: "text",
@@ -185,7 +196,7 @@ function parse_file(file_string) {
     let file = {};
 
     file_string = file_string.replace("\/", "\\");
-    const is_file_string = file_string_test_regex.test(file_string);
+    const is_file_string = regex.file_string_test.test(file_string);
     if (!is_file_string) {
         file.dir = "";
         file.name = "";
@@ -194,8 +205,8 @@ function parse_file(file_string) {
     }
     
     // Splits the directory from the file and the filename from the extension
-    const path_components = file_string.split(file_path_split_regex);
-    const name_components = path_components[1].split(file_name_split_regex);
+    const path_components = file_string.split(regex.file_path_split);
+    const name_components = path_components[1].split(regex.file_name_split);
 
     file.dir = path_components[0] || "";
     file.name = name_components[0] || "";
@@ -204,6 +215,7 @@ function parse_file(file_string) {
     return file;
 }
 
+// Returns a bold object that describes the bold string
 function parse_bold(bold_string) {
     bold = {};
 
@@ -212,6 +224,7 @@ function parse_bold(bold_string) {
     return bold;
 }
 
+// Returns a italic object that describes the italic string
 function parse_italic(italic_string) {
     italic = {};
 
@@ -220,6 +233,7 @@ function parse_italic(italic_string) {
     return italic;
 }
 
+// Returns a strikethrough object that describes the strikethrough string
 function parse_strikethrough(strikethrough_string) {
     strikethrough = {};
 
@@ -228,6 +242,7 @@ function parse_strikethrough(strikethrough_string) {
     return strikethrough;
 }
 
+// Returns a code object that describes the code string
 function parse_code(code_string) {
     code = {};
 
@@ -236,15 +251,24 @@ function parse_code(code_string) {
     return code;
 }
 
-function parse_heading(heading_string) {
-    heading = {};
+// Returns a heading1 object that describes the heading1 string
+function parse_heading1(heading1_string) {
+    heading1 = {};
 
-    heading.data = heading_string;
+    heading1.data = heading1_string;
 
-    return heading;
+    return heading1;
+}
+
+// Returns a heading2 object that describes the heading2 string
+function parse_heading2(heading2_string) {
+    heading2 = {};
+
+    heading2.data = heading2_string;
+
+    return heading2;
 }
 
 module.exports = {
-    parse_chat,
-    parse_line
+    parse_line,
 };
