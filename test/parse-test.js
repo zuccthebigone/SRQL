@@ -1,41 +1,86 @@
 // https://mochajs.org/
 const assert = require("assert");
 const rewire = require("rewire");
+const parser = require("../src/core/parse");
 
 // Used to inform tests of unexposed module functions
-var parse = rewire("../src/core/parse.js");
+const parse = rewire("../src/core/parse.js");
 
 describe("parse.js", function() {
 
-    const regex_surround_delims = parse.__get__("regex_surround_delims");
+    const escape_chars = parse.__get__("escape_chars");
 
-    describe("#regex_surround_delims", function() {
-        it("Handles empty list", function() {
-            assert.deepEqual(regex_surround_delims([]), []);
+    describe("#escape_chars", function () {
+        it("Handles empty string: ''", function () {
+            assert.deepEqual(escape_chars(""), []);
         });
 
-        it("Handles single file delimiter '~~'", function () {
-            assert.deepEqual(regex_surround_delims([{ string: "~~", type: "file", parse: string => string }]), ["(\\~\\~[^\\~]*\\~\\~)"]);
+        it("Handles length 1 delimiter '~'", function () {
+            assert.deepEqual(escape_chars("~"), ["\\\~"]);
         });
 
-        it("Handles single strikethrough delimiter '~'", function () {
-            assert.deepEqual(regex_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }]), ["(\\~[^\\~]*\\~)"]);
-        });
-
-        it("Handles two delimiters '~' and '~~'", function () {
-            assert.deepEqual(regex_surround_delims([{ string: "~", type: "strikethrough", parse: string => string }, { string: "~~", type: "file", parse: string => string }]), ["(\\~[^\\~]*\\~)", "(\\~\\~[^\\~]*\\~\\~)"]);
+        it("Handles length >1 delimiter: '~~'", function () {
+            assert.deepEqual(escape_chars("~~"), ["\\\~", "\\\~"]);
         });
     });
 
-    const parse_chat = parse.__get__("parse_chat");
+    const chain_start_chars = parse.__get__("chain_start_chars");
 
-    describe("#parse_chat", function() {
-        it("Handles empty string", function() {
-            assert.deepEqual(parse_chat(""), []);
+    describe("#chain_start_chars", function() {
+        it("Throws TypeError on empty list: []", function() {
+            assert.throws(() => {
+                chain_start_chars([]);
+            }, TypeError);
         });
 
-        it("Handles one empty message line sent by local user", function () {
-            assert.deepEqual(parse_chat(">:"), [{ type: "message", message: { username: "", body: [] } }]);
+        it(`Handles length 1 list of escaped delimiter char: ${["\\\#"]}`, function() {
+            assert.deepEqual(chain_start_chars(["\\\#"]), "(\\\#\s[^\\\#]*)");
+        });
+
+        it(`Handles length >1 list of escaped delimiter chars: ${["\\\#", "\\\#"]}`, function () {
+            assert.deepEqual(chain_start_chars(["\\\#", "\\\#"]), "(\\\#\\\#\s[^\\\#]*)");
+        });
+    });
+
+    const chain_surround_chars = parse.__get__("chain_surround_chars");
+
+    describe("#chain_surround_chars", function () {
+        it("Throws TypeError on empty list: []", function () {
+            assert.throws(() => {
+                chain_surround_chars([]);
+            }, TypeError);
+        });
+
+        it(`Handles length 1 list of escaped delimiter char: ${["\\\~"]}`, function () {
+            assert.deepEqual(chain_surround_chars(["\\\~"]), "(\\\~[^\\\~]*\\\~)");
+        });
+
+        it(`Handles length >1 list of escaped delimiter chars: ${["\\\~", "\\\~"]}`, function () {
+            assert.deepEqual(chain_surround_chars(["\\\~", "\\\~"]), "(\\\~\\\~[^\\\~]*\\\~\\\~)");
+        });
+    });
+
+    const delim_regexs = parse.__get__("delim_regexs");
+
+    describe("#delim_regexs", function() {
+        it("Handles empty list: []", function() {
+            assert.deepEqual(delim_regexs([], string => string), []);
+        });
+
+        it(`Handles length 1 list of start delimiter and start delimiter chainer: ${[{ type: "heading1", string: "#" }]}`, function() {
+            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }], chain_start_chars), ["(\\\#\s[^\\\#]*)"]);
+        });
+
+        it(`Handles length >1 list of start delimiters and start delimiter chainer: ${[{ type: "heading1", string: "#" }, { type: "heading2", string: "##" }]}`, function () {
+            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }, { type: "heading2", string: "##" }], chain_start_chars), ["(\\\#\s[^\\\#]*)", "(\\\#\\\#\s[^\\\#]*)"]);
+        });
+
+        it(`Handles length 1 list of surround delimiter and surround delimiter chainer: ${[{ type: "file", string: "~" }]}`, function () {
+            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }], chain_surround_chars), ["(\\\~\\\~[^\\\~]*\\\~\\\~)"]);
+        });
+
+        it(`Handles length >1 list of surround delimiters and surround delimiter chainer: ${[{ type: "file", string: "~" }, { type: "bold", string: "*" }]}`, function () {
+            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }, { type: "bold", string: "*" }], chain_surround_chars), ["(\\\~\\\~[^\\\~]*\\\~\\\~)", "(\\\*[^\\\*]*\\\*)"]);
         });
     });
 

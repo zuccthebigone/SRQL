@@ -4,9 +4,14 @@ const delims = {
     body: {
         start: [
             {
-                type: "heading",
+                type: "heading1",
                 string: "#",
-                parse: parse_heading,
+                parse: parse_heading1,
+            },
+            {
+                type: "heading2",
+                string: "##",
+                parse: parse_heading2,
             },
         ],
         surround: [
@@ -46,8 +51,8 @@ const regex = {
     file_string_test: /[a-z]:\\([^\\\w]*\\)*[^\.]*/i,
     file_path_split: /\\([^\\]*$)/ig,
     file_name_split: /\.([^\.]*$)/ig,
-    delims_start: regex_start_delims(delims.body.surround),
-    delims_surround: regex_surround_delims(delims.body.surround),
+    delims_start: delim_regexs(delims.body.surround, chain_start_chars),
+    delims_surround: delim_regexs(delims.body.surround, chain_surround_chars),
 };
 regex.delim_start = regex.delims_start.join("|");
 regex.delim_surround = regex.delims_surround.join("|");
@@ -56,54 +61,32 @@ regex.delim_combined = `${regex.delim_start}|${regex.delim_surround}`;
 // Returns a list of escaped string characters
 function escape_chars(string) {
     let escaped_chars = [];
-
+    
     for (let i = 0; i < string.length; i++) {
         const char = string[i];
         escaped_chars.push("\\" + char);
     }
-
+    
     return escaped_chars;
 }
 
-// Returns a list of surround delimiter regexes
-function regex_start_delims(start_delims) {
-    let start_delims_regexs = [];
-
-    start_delims.forEach(({ string }) => {
-        const escaped_delim_chars = escape_chars(string);
-        const escaped_delim = escaped_delim_chars.join("");
-        start_delims_regexs.push(`(${escaped_delim}\s[^${escaped_delim_chars[0]}].*)`);
-    });
-
-    return start_delims_regexs;
+function chain_start_chars(chars) {
+    if (chars.length == 0) throw new TypeError("Cannot chain list of no chars");
+    return `(${chars.join("")}\s[^${chars[0]}]*)`;
 }
 
-// Returns a list of surround delimiter regexes
-function regex_surround_delims(surround_delims) {
-    let surround_delims_regexs = [];
+function chain_surround_chars(chars) {
+    if (chars.length == 0) throw new TypeError("Cannot chain list of no chars");
+    string = chars.join("");
+    return `(${string}[^${chars[0]}]*${string})`;
+}
 
-    surround_delims.forEach(({ string }) => {
-        const escaped_delim_chars = escape_chars(string);
-        const escaped_delim = escaped_delim_chars.join("");
-        surround_delims_regexs.push(`(${escaped_delim}[^${escaped_delim_chars[0]}]*${escaped_delim})`);
-    });
-
-    return surround_delims_regexs;
+// Returns a list of delimiter regexes
+function delim_regexs(delims, prepare) { 
+    return delims.map(({ string }) => prepare(escape_chars(string)));
 }
 
 // --------------------------- PARSING ---------------------------
-
-// Returns a list describing the chat contents
-function parse_chat(chat_string) {
-    let chat = [];
-
-    chat_string.split("\n").forEach(line_string => {
-        if (line_string === "") return;
-        chat.push(parse_line(line_string));
-    });
-
-    return chat;
-}
 
 // Returns a line object that describes the line string
 function parse_line(line_string) {
@@ -267,15 +250,23 @@ function parse_code(code_string) {
     return code;
 }
 
-function parse_heading(heading_string) {
-    heading = {};
+function parse_heading1(heading1_string) {
+    heading1 = {};
 
-    heading.data = heading_string;
+    heading1.data = heading1_string;
 
-    return heading;
+    return heading1;
+}
+
+function parse_heading2(heading2_string) {
+    heading2 = {};
+
+    heading2.data = heading2_string;
+
+    return heading2;
 }
 
 module.exports = {
-    parse_chat,
-    parse_line
+    parse_line,
+    delims,
 };
