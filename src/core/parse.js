@@ -1,5 +1,6 @@
 
 // --------------------------- DELIMITERS ---------------------------
+
 const delims = {
     body: {
         start: [
@@ -51,34 +52,30 @@ const regex = {
     file_string_test: /[a-z]:\\([^\\\w]*\\)*[^\.]*/i,
     file_path_split: /\\([^\\]*$)/ig,
     file_name_split: /\.([^\.]*$)/ig,
-    delims_start: delim_regexs(delims.body.surround, chain_start_chars),
-    delims_surround: delim_regexs(delims.body.surround, chain_surround_chars),
+    delims_start: delim_regexs(delims.body.surround, start_regex),
+    delims_surround: delim_regexs(delims.body.surround, surround_regex),
 };
+
 regex.delim_start = regex.delims_start.join("|");
 regex.delim_surround = regex.delims_surround.join("|");
 regex.delim_combined = `${regex.delim_start}|${regex.delim_surround}`;
 
 // Returns a list of escaped string characters
 function escape_chars(string) {
-    let escaped_chars = [];
-    
-    for (let i = 0; i < string.length; i++) {
-        const char = string[i];
-        escaped_chars.push("\\" + char);
-    }
-    
-    return escaped_chars;
+    return string.split("").map(char => "\\" + char);
 }
 
-function chain_start_chars(chars) {
-    if (chars.length == 0) throw new TypeError("Cannot chain list of no chars");
-    return `(${chars.join("")}\s[^${chars[0]}]*)`;
+// Returns the regex for a start delimiter from its characters
+function start_regex(char_list) {
+    if (char_list.length == 0) throw new TypeError("Cannot chain list of no chars");
+    return `(${char_list.join("")}\s[^${char_list[0]}]*)`;
 }
 
-function chain_surround_chars(chars) {
-    if (chars.length == 0) throw new TypeError("Cannot chain list of no chars");
-    string = chars.join("");
-    return `(${string}[^${chars[0]}]*${string})`;
+// Returns the regex for a surround delimiter from its characters
+function surround_regex(char_list) {
+    if (char_list.length == 0) throw new TypeError("Cannot chain list of no chars");
+    string = char_list.join("");
+    return `(${string}[^${char_list[0]}]*${string})`;
 }
 
 // Returns a list of delimiter regexes
@@ -218,6 +215,7 @@ function parse_file(file_string) {
     return file;
 }
 
+// Returns a bold object that describes the bold string
 function parse_bold(bold_string) {
     bold = {};
 
@@ -226,6 +224,7 @@ function parse_bold(bold_string) {
     return bold;
 }
 
+// Returns a italic object that describes the italic string
 function parse_italic(italic_string) {
     italic = {};
 
@@ -234,6 +233,7 @@ function parse_italic(italic_string) {
     return italic;
 }
 
+// Returns a strikethrough object that describes the strikethrough string
 function parse_strikethrough(strikethrough_string) {
     strikethrough = {};
 
@@ -242,6 +242,7 @@ function parse_strikethrough(strikethrough_string) {
     return strikethrough;
 }
 
+// Returns a code object that describes the code string
 function parse_code(code_string) {
     code = {};
 
@@ -250,6 +251,7 @@ function parse_code(code_string) {
     return code;
 }
 
+// Returns a heading1 object that describes the heading1 string
 function parse_heading1(heading1_string) {
     heading1 = {};
 
@@ -258,6 +260,7 @@ function parse_heading1(heading1_string) {
     return heading1;
 }
 
+// Returns a heading2 object that describes the heading2 string
 function parse_heading2(heading2_string) {
     heading2 = {};
 
@@ -268,5 +271,4 @@ function parse_heading2(heading2_string) {
 
 module.exports = {
     parse_line,
-    delims,
 };

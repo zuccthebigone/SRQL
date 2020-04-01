@@ -24,39 +24,39 @@ describe("parse.js", function() {
         });
     });
 
-    const chain_start_chars = parse.__get__("chain_start_chars");
+    const start_regex = parse.__get__("start_regex");
 
-    describe("#chain_start_chars", function() {
+    describe("#start_regex", function() {
         it("Throws TypeError on empty list: []", function() {
             assert.throws(() => {
-                chain_start_chars([]);
+                start_regex([]);
             }, TypeError);
         });
 
         it(`Handles length 1 list of escaped delimiter char: ${["\\\#"]}`, function() {
-            assert.deepEqual(chain_start_chars(["\\\#"]), "(\\\#\s[^\\\#]*)");
+            assert.deepEqual(start_regex(["\\\#"]), "(\\\#\s[^\\\#]*)");
         });
 
         it(`Handles length >1 list of escaped delimiter chars: ${["\\\#", "\\\#"]}`, function () {
-            assert.deepEqual(chain_start_chars(["\\\#", "\\\#"]), "(\\\#\\\#\s[^\\\#]*)");
+            assert.deepEqual(start_regex(["\\\#", "\\\#"]), "(\\\#\\\#\s[^\\\#]*)");
         });
     });
 
-    const chain_surround_chars = parse.__get__("chain_surround_chars");
+    const surround_regex = parse.__get__("surround_regex");
 
-    describe("#chain_surround_chars", function () {
+    describe("#surround_regex", function () {
         it("Throws TypeError on empty list: []", function () {
             assert.throws(() => {
-                chain_surround_chars([]);
+                surround_regex([]);
             }, TypeError);
         });
 
         it(`Handles length 1 list of escaped delimiter char: ${["\\\~"]}`, function () {
-            assert.deepEqual(chain_surround_chars(["\\\~"]), "(\\\~[^\\\~]*\\\~)");
+            assert.deepEqual(surround_regex(["\\\~"]), "(\\\~[^\\\~]*\\\~)");
         });
 
         it(`Handles length >1 list of escaped delimiter chars: ${["\\\~", "\\\~"]}`, function () {
-            assert.deepEqual(chain_surround_chars(["\\\~", "\\\~"]), "(\\\~\\\~[^\\\~]*\\\~\\\~)");
+            assert.deepEqual(surround_regex(["\\\~", "\\\~"]), "(\\\~\\\~[^\\\~]*\\\~\\\~)");
         });
     });
 
@@ -68,19 +68,19 @@ describe("parse.js", function() {
         });
 
         it(`Handles length 1 list of start delimiter and start delimiter chainer: ${[{ type: "heading1", string: "#" }]}`, function() {
-            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }], chain_start_chars), ["(\\\#\s[^\\\#]*)"]);
+            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }], start_regex), ["(\\\#\s[^\\\#]*)"]);
         });
 
         it(`Handles length >1 list of start delimiters and start delimiter chainer: ${[{ type: "heading1", string: "#" }, { type: "heading2", string: "##" }]}`, function () {
-            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }, { type: "heading2", string: "##" }], chain_start_chars), ["(\\\#\s[^\\\#]*)", "(\\\#\\\#\s[^\\\#]*)"]);
+            assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }, { type: "heading2", string: "##" }], start_regex), ["(\\\#\s[^\\\#]*)", "(\\\#\\\#\s[^\\\#]*)"]);
         });
 
         it(`Handles length 1 list of surround delimiter and surround delimiter chainer: ${[{ type: "file", string: "~" }]}`, function () {
-            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }], chain_surround_chars), ["(\\\~\\\~[^\\\~]*\\\~\\\~)"]);
+            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }], surround_regex), ["(\\\~\\\~[^\\\~]*\\\~\\\~)"]);
         });
 
         it(`Handles length >1 list of surround delimiters and surround delimiter chainer: ${[{ type: "file", string: "~" }, { type: "bold", string: "*" }]}`, function () {
-            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }, { type: "bold", string: "*" }], chain_surround_chars), ["(\\\~\\\~[^\\\~]*\\\~\\\~)", "(\\\*[^\\\*]*\\\*)"]);
+            assert.deepEqual(delim_regexs([{ type: "file", string: "~~" }, { type: "bold", string: "*" }], surround_regex), ["(\\\~\\\~[^\\\~]*\\\~\\\~)", "(\\\*[^\\\*]*\\\*)"]);
         });
     });
 
