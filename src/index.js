@@ -25,24 +25,6 @@ async function test_data() {
     }
 }
 
-async function authenticate(username, password) {
-    var res = await query(`SELECT id, name FROM public.user WHERE username='${username}' AND password='${password}'`);
-    if (res.rowCount != 0) {
-        let data = res.rows[0];
-        user_id = data.id;
-
-        res = await query(`SELECT * FROM srql s INNER JOIN srql_member sm ON s.id=sm.srql_id WHERE sm.user_id='${user_id}'`);
-        var inner = "";
-        res.rows.forEach(srql => {
-            inner += `<srql-tile name="${srql.name}" srql_id="${srql.id}"></srql-tile>`
-        });
-        $("#srqls-container")[0].innerHTML = inner;
-    }
-}
-
 $(document).ready(async () => {
-    await client.connect();
-    // await test_data();
-    authenticate(username, crypto.pbkdf2Sync(password, salt, 1000, 64, "sha512").toString("hex"));
-    $("page-select")[0].children[1].click();
+    
 });
