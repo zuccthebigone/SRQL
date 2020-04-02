@@ -25,15 +25,15 @@ class WindowFrame extends Kippy {
             }
         });
     }
-    
+
     initialise() {
         this.views = [];
         this.state = {
             authenticated: false,
-        }
+        };
 
         this.password = hash_password("password123");
-        
+
         this.title_bar = new TitleBar(this);
         this.login_box = new LoginBox(this);
 
@@ -59,7 +59,7 @@ class TitleBar extends Kippy {
 
         this.minimize = document.createElement("button");
         this.minimize.innerHTML = `<i class="fas fa-minus"></i>`;
-        this.minimize.addEventListener("click", () => { this.window.minimize() });
+        this.minimize.addEventListener("click", () => this.window.minimize);
 
         this.restore = document.createElement("button");
         this.restore.innerHTML = `<i class="far fa-window-maximize"></i>`;
@@ -74,7 +74,7 @@ class TitleBar extends Kippy {
         this.close = document.createElement("button");
         this.close.className = "close";
         this.close.innerHTML = `<i class="fas fa-times"></i>`;
-        this.close.addEventListener("click", () => { this.window.close() });
+        this.close.addEventListener("click", () => this.window.close);
 
         this.appendChild(this.close);
         this.appendChild(this.restore);
@@ -105,8 +105,8 @@ class SrqlSearch extends Kippy {
             this.state.text = this.container.value;
         });
 
-        this.container.addEventListener("focusin", () => { this.container.placeholder = "Type / or @ for commands"});
-        this.container.addEventListener("focusout", () => { this.container.placeholder = "Search or Type Command" });
+        this.container.addEventListener("focusin", () => this.container.placeholder = "Type / or @ for commands");
+        this.container.addEventListener("focusout", () => this.container.placeholder = "Search or Type Command");
 
         this.search_suggestion = new SearchSuggestion(this);
     }
@@ -116,7 +116,7 @@ class SearchSuggestion extends Kippy {
     constructor(parent) {
         super(parent, "div", "search-suggestion");
     }
-    
+
     initialise() {
         this.state = {
             suggestions: []
@@ -137,17 +137,17 @@ class LoginBox extends Kippy {
         this.username_input = document.createElement("input");
         this.username_input.placeholder = "username..";
         this.username_input.value = "p4r17y817";
-        
+
         this.username_input.addEventListener("keypress", (event) => {
             if (event.key == "Enter") {
                 this.parent.authenticate(this.username_input.value, this.parent.password);
             }
         });
-        
+
         this.appendChild(this.username_input);
         this.username_input.focus();
     }
-    
+
     update() {
         this.container.style.display = this.parent.state.authenticated ? "none" : null;
     }
@@ -172,7 +172,7 @@ class Sidebar extends Kippy {
         this.parent.views.forEach((view, i) => {
             const button = document.createElement("button");
             button.className = "select-page";
-            
+
             const icon = document.createElement("i");
             icon.className = view.icon;
             button.appendChild(icon);
@@ -181,7 +181,7 @@ class Sidebar extends Kippy {
             text.className = "name";
             text.textContent = view.view_name;
             button.appendChild(text);
-            
+
             button.addEventListener("click", () => {
                 this.previous_view_index = this.state.current_view_index;
                 this.state.current_view_index = i;
@@ -217,8 +217,8 @@ class View extends Kippy {
         this.views = [];
         this.previous_view_index = 0;
         this.state = {
-            current_view_index: 0
-        }
+            current_view_index: 0,
+        };
         this.container.textContent = this.view_name;
     }
 
@@ -240,8 +240,8 @@ class SrqlView extends View {
         this.views = [];
         this.previous_view_index = 0;
         this.state = {
-            current_view_index: 0
-        }
+            current_view_index: 0,
+        };
 
         this.srql_tiles = new SrqlTiles(this);
         this.current_srql = new ChatView(this);
@@ -285,8 +285,8 @@ class SrqlTile extends Kippy {
 
     initialise() {
         this.state = {
-            srql_id: null
-        }
+            srql_id: null,
+        };
 
         this.options = document.createElement("i");
         this.options.className = "fas fa-ellipsis-h options";
@@ -333,8 +333,8 @@ class ChatView extends View {
 
     initialise() {
         this.state = {
-            srql_id: null
-        }
+            srql_id: null,
+        };
         this.previous_srql_id = null;
 
         this.chat = new Chat(this);
@@ -370,14 +370,14 @@ class ChatView extends View {
         if (this.state.srql_id === null || this.state.srql_id === this.previous_srql_id) return;
         this.previous_srql_id = this.state.srql_id;
 
-        query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id='${ this.state.srql_id }' AND sm.role='owner'`, res => {
+        query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id='${this.state.srql_id}' AND sm.role='owner'`, res => {
             if (res.rowCount === 0) return;
             const owner = res.rows[0].username;
             this.root.peer.connect(this.state.srql_id);
             this.owner.textContent = "@" + owner;
         });
 
-        query(`SELECT name FROM srql WHERE id='${ this.state.srql_id }'`, res => {
+        query(`SELECT name FROM srql WHERE id='${this.state.srql_id}'`, res => {
             if (res.rowCount === 0) return;
             this.title.textContent = res.rows[0].name;
         });
@@ -396,8 +396,8 @@ class Chat extends Kippy {
             "js": "fas fa-file-code",
             "css": "fas fa-file-code",
             "folder": "fas fa-folder",
-            "file": "fas fa-file"
-        }
+            "file": "fas fa-file",
+        };
 
         this.text = `>p4r17y817:Hello There\n>zuccthebigone:Hi\n>zuccthebigone:Check this out: ~~D:\\Documents\\Github\\SRQL\\src\\utils.js~~ and this: ~~D:\\Documents\\Github\\SRQL\\src\\custom_elements.js~~`;
     }
@@ -414,6 +414,7 @@ class Chat extends Kippy {
                     break;
                 case "meta":
                     line_elem = this.render_meta(line.meta);
+                    break;
                 default:
                     return;
             }
@@ -430,9 +431,9 @@ class Chat extends Kippy {
         const message_elem = document.createElement("span");
         message_elem.className = "message";
 
-        
+
         if (message.username === this.root.username) {
-            
+
         } else {
             message_elem.style.borderColor = "#ccceff"; //#ffe7c6
 
@@ -489,7 +490,7 @@ class Chat extends Kippy {
 
         const not_file = file.ext === "";
         const file_exists = file.dir !== "" && file.name !== "";
-        icon_elem.classList += not_file ? (file_exists ? this.file_icon["file"] : this.file_icon["folder"]) : this.file_icon[file.ext];
+        icon_elem.classList += not_file ? (file_exists ? this.file_icon.file : this.file_icon.folder) : this.file_icon[file.ext];
         name_elem.textContent = not_file ? (file_exists ? file.dir + "\\" + file.name : "File Not Found") : file.name + "." + file.ext;
 
         file_elem.appendChild(icon_elem);
@@ -502,7 +503,7 @@ class Chat extends Kippy {
             this.tooltip.style.opacity = 1;
         });
 
-        file_elem.addEventListener("mouseleave", () => { this.tooltip.style.opacity = 0 });
+        file_elem.addEventListener("mouseleave", () => this.tooltip.style.opacity = 0);
 
         return file_elem;
     }
@@ -525,14 +526,14 @@ class ChatInput extends Kippy {
         this.appendChild(this.icon);
 
         this.input = document.createElement("input");
-        this.input.placeholder = "Type message.."
+        this.input.placeholder = "Type message..";
         this.appendChild(this.input);
 
         this.input.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
-                this.parent.chat.add_line(`>${ this.root.username }:${ this.input.value }`);
+                this.parent.chat.add_line(`>${this.root.username}:${this.input.value}`);
                 this.input.value = "";
             }
-        })
+        });
     }
 }

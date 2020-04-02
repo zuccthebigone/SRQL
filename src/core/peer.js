@@ -1,189 +1,190 @@
+// --------------------------------- SERVER ------------------------------------
+
 const io = require("socket.io")();
 
-var open_connections = {};
+const peer_connections = {};
 
-io.on("connection", client_socket => {
-    const srql_rooms = [];
+function room_members(room) {
+    return Object.values(peer_connections).filter(connection => connection.room !== room);
+}
 
-    client_socket.on("register-peer", data => {
-        open_connections[data.src_username] = {
-            socket: client_socket,
-        };
+class PeerConnection {
+    constructor(socket, room = null) {
+        this.socket = socket;
+        this.room = room;
+    }
+}
+
+io.on("connection", socket => {
+
+    // Registers peer
+    socket.on("register-peer", peer => peer_connections[peer] = new PeerConnection(socket));
+
+    // Switches peer to room and sends connection requests to all room members
+    socket.on("join-room", ({ peer, room }, callback) => {
+        if (!peer_connections[peer]) return;
+        if (peer_connections[peer].room) socket.leave(peer_connections[peer].room);
+        socket.join(room);
+        peer_connections[peer].room = room;
+        socket.to(room).emit("peer-connection-request", peer);
+        callback(room_members(room).length);
     });
 
-    client_socket.on("join-srql", (data, callback) => {
-        srql_rooms.forEach(room => {
-            client_socket.leave(room);
-        });
-        srql_rooms.push(data.srql_id);
-        client_socket.join(data.srql_id);
-        client_socket.to(data.srql_id).emit("connection-request", {
-            src_username: data.src_username,
-        });
-        callback(Object.keys(client_socket.adapter.rooms[data.srql_id].sockets).filter(id => { return id !== client_socket.id }).length);
-    });
+    // Forwards connection details to requesting peer
+    socket.on("peer-connection-inform", ({ src_peer, dest_peer, src_address }, callback) => peer_connections[dest_peer].socket.emit("peer-connection-inform", { peer: src_peer, address: src_address }, callback));
 
-    client_socket.on("connection-inform", (data, callback) => {
-        open_connections[data.dest_username].socket.emit("connection-inform", data, address => {
-            callback(address);
-        });
-    });
+    // Forwards candidate details to requesting peer
+    socket.on("peer-candidate-inform", ({ src_peer, dest_peer, candidate }, callback) => peer_connections[dest_peer].socket.emit("peer-candidate-inform", { peer: src_peer, candidate: candidate }, callback));
 
-    client_socket.on("candidate-inform", (data, callback) => {
-        open_connections[data.dest_username].socket.emit("candidate-inform", data, () => {
-            callback();
-        });
-    });
-
-    client_socket.on("disconnect", () => {
-        Object.keys(open_connections).forEach(username => {
-            if (open_connections[username] === client_socket) delete open_connections[username];
-        });
-    });
+    // Removes peer from rooms
+    socket.on("disconnect", () => Object.entries(peer_connections).forEach(([peer, connection]) => {
+        if (connection.socket === socket) delete peer_connections[peer];
+    }));
 });
 
 io.listen(8008);
 
-
-
-
+// ----------------------------------- PEER ------------------------------------
 
 const client_io = require("socket.io-client");
 
-const config = {
-    iceServers: [{
-        urls: "stun:stun.l.google.com:19302",
-    }],
+const stun_config = {
+    iceServers: [
+        {
+            urls: "stun:stun.l.google.com:19302",
+        },
+    ],
 };
 
 const server_address = "http://localhost:8008";
 
+class Connection {
+    constructor(connection, channel) {
+        this.connection = connection;
+        this.channel = channel;
+    }
+}
+
 class Peer {
-    constructor(username) {
-        this.username = username;
-        this.server_socket = client_io(server_address);
-        this.peer_connections = {};
+
+    constructor(id) {
+
+        this.id = id;
+        this.server = client_io(server_address);
+        this.connections = {};
         this.events = {
-            "data": message => { console.log(message) },
+            data: console.log,
         };
 
-        this.server_socket.on("connect", () => {
-            this.server_socket.emit("register-peer", {
-                src_username: this.username,
-            });
-        });
-
-        this.server_socket.on("connection-request", data => this.handle_connection_request(data));
-        this.server_socket.on("connection-inform", (data, callback) => this.handle_connection_inform(data, callback));
-        this.server_socket.on("candidate-inform", (data, callback) => this.handle_candidate_inform(data, callback));
+        this.server.on("connect", () => this.register_with_server());
+        this.server.on("peer-connection-request", other_peer => this.establish_connection(other_peer));
+        this.server.on("peer-connection-inform", (data, callback) => this.handle_connection_inform(data, callback));
+        this.server.on("peer-candidate-inform", (data, callback) => this.handle_candidate_inform(data, callback));
     }
 
-    handle_connection_request(data) {
+    register_with_server() {
+        this.server.emit("register-peer", this.id);
+    }
 
-        this.peer_connections[data.src_username] = {
-            connection: new RTCPeerConnection(config),
-            channel: null,
-        };
+    establish_connection(other_peer) {
 
-        this.peer_connections[data.src_username].channel = this.peer_connections[data.src_username].connection.createDataChannel("data-channel");
+        const connection = new RTCPeerConnection(stun_config);
+        const channel = connection.createDataChannel("data-channel");
 
-        this.peer_connections[data.src_username].connection.createOffer().then(local_address => {
-            this.peer_connections[data.src_username].connection.setLocalDescription(local_address);
-            this.server_socket.emit("connection-inform", {
-                src_username: this.username,
-                dest_username: data.src_username,
-                remote_address: local_address,
-            }, remote_address => {
-                this.peer_connections[data.src_username].connection.setRemoteDescription(remote_address);
-            });
+        this.connections[other_peer] = new Connection(connection, channel);
+
+        connection.createOffer().then(local_address => {
+            connection.setLocalDescription(local_address);
+            this.server.emit("peer-connection-inform", {
+                src_peer: this.id,
+                dest_peer: other_peer,
+                src_address: local_address,
+            }, remote_address => connection.setRemoteDescription(remote_address));
         });
 
         let has_candidate = false;
 
-        this.peer_connections[data.src_username].connection.onicecandidate = connection => {
-            if (!connection.isTrusted || has_candidate) return;
+        connection.onicecandidate = ({ isTrusted, candidate }) => {
+            if (!isTrusted || has_candidate) return;
             has_candidate = true;
-            this.server_socket.emit("candidate-inform", {
-                src_username: this.username,
-                dest_username: data.src_username,
-                candidate: connection.candidate,
+            this.server.emit("peer-candidate-inform", {
+                src_peer: this.id,
+                dest_peer: other_peer,
+                candidate: candidate,
             }, () => {
                 // candidate set
             });
-        }
-
-        this.peer_connections[data.src_username].channel.onmessage = message_event => this.handle_message_event(message_event);
-    }
-
-    handle_connection_inform(data, callback) {
-
-        this.peer_connections[data.src_username] = {
-            connection: new RTCPeerConnection(config),
-            channel: null,
         };
 
-        this.peer_connections[data.src_username].connection.setRemoteDescription(new RTCSessionDescription(data.remote_address));
+        channel.onmessage = message_event => this.handle_message_event(message_event);
+    }
 
-        this.peer_connections[data.src_username].connection.createAnswer().then(local_address => {
-            this.peer_connections[data.src_username].connection.setLocalDescription(local_address);
+    handle_connection_inform({ peer, address }, callback) {
+
+        const connection = new RTCPeerConnection(stun_config);
+        connection.setRemoteDescription(new RTCSessionDescription(address));
+
+        this.connections[peer] = { connection: connection };
+
+        connection.createAnswer().then(local_address => {
+            connection.setLocalDescription(local_address);
             callback(local_address);
         });
 
-        this.peer_connections[data.src_username].connection.ondatachannel = connection => {
-            if (!connection.isTrusted) return;
-            this.peer_connections[data.src_username].channel = connection.channel;
-            this.peer_connections[data.src_username].channel.onmessage = message_event => this.handle_message_event(message_event);
-            this.peer_connections[data.src_username].channel.onopen = () => {
-                this.emit(data.src_username, "peer-connected", { src_username: data.src_username, dest_username: this.username, message: "success" });
-                this.handle_message({ type: "peer-connected", data: { src_username: this.username, dest_username: data.src_username, message: "success" } });
-            }
+        connection.ondatachannel = ({ isTrusted, channel }) => {
+            if (!isTrusted) return;
+            channel.onmessage = message_event => this.handle_message_event(message_event);
+            channel.onopen = () => {
+                this.emit(peer, "peer-connected", { src_peer: peer, dest_peer: this.id, message: "success" });
+                this.handle_message({ type: "peer-connected", data: { src_peer: this.id, dest_peer: peer, message: "success" } });
+            };
+            this.connections[peer].channel = channel;
         };
     }
 
-    handle_candidate_inform(data, callback) {
-        this.peer_connections[data.src_username].connection.addIceCandidate(data.candidate);
+    handle_candidate_inform({ peer, candidate }, callback) {
+        this.connections[peer].connection.addIceCandidate(candidate);
         callback();
     }
 
-    handle_message_event(message_event) {
-        if (!message_event.isTrusted) return;
-        const message = JSON.parse(message_event.data);
+    handle_message_event({ isTrusted, data }) {
+        if (!isTrusted) return;
+        const message = JSON.parse(data);
         this.handle_message(message);
     }
 
     handle_message(message) {
         if (this.events[message.type] === undefined) {
-            this.events["data"](message);
+            this.events.data(message);
             return;
         }
         this.events[message.type](message.data);
     }
 
-    connect(srql_id) {
-        this.peer_connections = {};
+    connect(room) {
+        this.connections = {};
         this.open_connections = 0;
-        this.server_socket.emit("join-srql", {
-            src_username: this.username,
-            srql_id: srql_id,
-        }, srql_size => {
-            // TODO: emit connected event when srql size matches open connections
+        this.server.emit("join-room", {
+            peer: this.id,
+            room: room,
+        }, room_size => {
+            // TODO: emit connected event when room size matches open connections
         });
     }
 
-    emit(dest_username, data_type, data) {
-        const data_string = JSON.stringify({ type: data_type, data: data });
-        this.peer_connections[dest_username].channel.send(data_string);
+    emit(peer, data_type, data) {
+        this.connections[peer].channel.send(JSON.stringify({ type: data_type, data: data }));
     }
 
     broadcast(data_type, data) {
-        Object.keys(this.peer_connections).forEach(peer_username => {
-            this.emit(peer_username, data_type, data);
+        Object.keys(this.connections).forEach(peer_peer => {
+            this.emit(peer_peer, data_type, data);
         });
     }
 
-    broadcast_to(peer_usernames, data_type, data) {
-        peer_usernames.forEach(peer_username => {
-            this.emit(peer_username, data_type, data);
+    broadcast_to(peer_peers, data_type, data) {
+        peer_peers.forEach(peer_peer => {
+            this.emit(peer_peer, data_type, data);
         });
     }
 
@@ -194,4 +195,4 @@ class Peer {
 
 module.exports = {
     Peer: Peer,
-}
+};
