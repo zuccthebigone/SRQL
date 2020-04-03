@@ -1,5 +1,5 @@
 const crypto = require("crypto");
-const { query } = require("./db.js");
+const { ClientFactory } = require("./db.js");
 
 const username = "zuccthebigone";
 const password = "password123";

@@ -5,6 +5,8 @@ const { parse_chat, parse_line } = require("./core/parse.js");
 const { Peer } = require("./core/peer.js");
 const { BrowserWindow } = require("electron").remote;
 
+const client_factory = new ClientFactory();
+
 class WindowFrame extends Kippy {
 
     constructor() {
@@ -265,8 +267,7 @@ class SrqlTiles extends Kippy {
         if (this.root.state.authenticated) {
             this.container.innerHTML = "";
             this.srqls = [];
-            const clientFactory = new ClientFactory();
-            const client = await clientFactory.new();
+            const client = await client_factory.new();
             const { rows } = await client.query(`SELECT id FROM srql s INNER JOIN srql_member sm ON s.id=sm.srql_id WHERE sm.user_id=$1::uuid`, [this.root.user_id]);
             rows.forEach(srql => {
                 const srql_tile = new SrqlTile(this, srql.id);
@@ -313,8 +314,7 @@ class SrqlTile extends Kippy {
     async update() {
         if (this.state.srql_id === null) return;
 
-        const clientFactory = new ClientFactory();
-        const client = await clientFactory.new();
+        const client = await client_factory.new();
 
         client.query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id=$1::uuid AND sm.role='owner'`, [this.state.srql_id], (err, { rowCount, rows }) => {
             if (rowCount == 0) return;
@@ -377,8 +377,7 @@ class ChatView extends View {
         if (this.state.srql_id === null || this.state.srql_id === this.previous_srql_id) return;
         this.previous_srql_id = this.state.srql_id;
 
-        const clientFactory = new ClientFactory();
-        const client = await clientFactory.new();
+        const client = await client_factory.new();
 
         client.query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id=$1::uuid AND sm.role='owner'`, [this.state.srql_id], (err, { rowCount, rows }) => {
             if (rowCount === 0) return;
