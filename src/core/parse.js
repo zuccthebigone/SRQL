@@ -79,18 +79,23 @@ function surround_regex(char_list) {
 }
 
 // Returns a list of delimiter regexes
-function delim_regexs(delims, prepare) { 
+function delim_regexs(delims, prepare) {
     return delims.map(({ string }) => prepare(escape_chars(string)));
 }
 
 // --------------------------- PARSING ---------------------------
+
+// Returns a chat object that describes the chat string
+function parse_chat(chat_string) {
+    return chat_string.split("\n").map(parse_line);
+}
 
 // Returns a line object that describes the line string
 function parse_line(line_string) {
     let line = {};
 
     const delim = line_string[0];
-    switch(delim) {
+    switch (delim) {
         case ">":
             line.type = "message";
             line.message = parse_message(line_string.substr(1));
@@ -133,16 +138,12 @@ function parse_meta(meta_string) {
 
 // Returns a body object that describes the body string
 function parse_body(body_string) {
-    let body = [];
-
-    const sections = body_string.split(new RegExp(regex.delim_combined, "ig"));
-    sections.forEach(section_string => {
-        if (section_string === undefined || section_string.length == 0) return;
-        const is_start_section = section_string[0] != section_string[section_string.length - 1];
-        body.push(is_start_section ? parse_start_section(section_string) : parse_surround_section(section_string));
-    });
-
-    return body;
+    return body_string.split(new RegExp(regex.delim_combined, "ig"))
+        .filter(section_string => section_string !== undefined && section_string !== "")
+        .map(section_string => {
+            const is_start_section = section_string[0] !== section_string[section_string.length - 1];
+            return is_start_section ? parse_start_section(section_string) : parse_surround_section(section_string);
+        });
 }
 
 // Returns a section object that describes the section string
@@ -203,7 +204,7 @@ function parse_file(file_string) {
         file.ext = "";
         return file;
     }
-    
+
     // Splits the directory from the file and the filename from the extension
     const path_components = file_string.split(regex.file_path_split);
     const name_components = path_components[1].split(regex.file_name_split);
@@ -270,5 +271,6 @@ function parse_heading2(heading2_string) {
 }
 
 module.exports = {
+    parse_chat,
     parse_line,
 };

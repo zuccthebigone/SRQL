@@ -5,7 +5,8 @@
   "main": "init.js",
   "scripts": {
     "start": "electron .",
-    "test": "mocha"
+    "test": "mocha",
+    "test-data": "node ./test/test-data.js"
   },
   "repository": {
     "type": "git",
