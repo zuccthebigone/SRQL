@@ -1,12 +1,11 @@
 // https://mochajs.org/
 const assert = require("assert");
 const rewire = require("rewire");
-const parser = require("../src/core/parse");
 
 // Used to inform tests of unexposed module functions
 const parse = rewire("../src/core/parse.js");
 
-describe("parse.js", function() {
+describe("parse.js", function () {
 
     const escape_chars = parse.__get__("escape_chars");
 
@@ -26,14 +25,14 @@ describe("parse.js", function() {
 
     const start_regex = parse.__get__("start_regex");
 
-    describe("#start_regex", function() {
-        it("Throws TypeError on empty list: []", function() {
+    describe("#start_regex", function () {
+        it("Throws TypeError on empty list: []", function () {
             assert.throws(() => {
                 start_regex([]);
             }, TypeError);
         });
 
-        it(`Handles length 1 list of escaped delimiter char: ${["\\\#"]}`, function() {
+        it(`Handles length 1 list of escaped delimiter char: ${["\\\#"]}`, function () {
             assert.deepEqual(start_regex(["\\\#"]), "(\\\#\s[^\\\#]*)");
         });
 
@@ -62,12 +61,12 @@ describe("parse.js", function() {
 
     const delim_regexs = parse.__get__("delim_regexs");
 
-    describe("#delim_regexs", function() {
-        it("Handles empty list: []", function() {
+    describe("#delim_regexs", function () {
+        it("Handles empty list: []", function () {
             assert.deepEqual(delim_regexs([], string => string), []);
         });
 
-        it(`Handles length 1 list of start delimiter and start delimiter chainer: ${[{ type: "heading1", string: "#" }]}`, function() {
+        it(`Handles length 1 list of start delimiter and start delimiter chainer: ${[{ type: "heading1", string: "#" }]}`, function () {
             assert.deepEqual(delim_regexs([{ type: "heading1", string: "#" }], start_regex), ["(\\\#\s[^\\\#]*)"]);
         });
 
@@ -86,8 +85,8 @@ describe("parse.js", function() {
 
     const parse_line = parse.__get__("parse_line");
 
-    describe("#parse_line", function() {
-        it("Handles empty string: ''", function() {
+    describe("#parse_line", function () {
+        it("Handles empty string: ''", function () {
             assert.deepEqual(parse_line(""), { type: "unknown", data: "" });
         });
 
@@ -110,8 +109,8 @@ describe("parse.js", function() {
 
     const parse_message = parse.__get__("parse_message");
 
-    describe("#parse_message", function() {
-        it("Handles empty string: ''", function() {
+    describe("#parse_message", function () {
+        it("Handles empty string: ''", function () {
             assert.deepEqual(parse_message(""), { username: "", body: [] });
         });
 
@@ -142,8 +141,8 @@ describe("parse.js", function() {
 
     const parse_body = parse.__get__("parse_body");
 
-    describe("#parse_body", function() {
-        it("Handles empty string: ''", function() {
+    describe("#parse_body", function () {
+        it("Handles empty string: ''", function () {
             assert.deepEqual(parse_body(""), []);
         });
 
@@ -151,35 +150,35 @@ describe("parse.js", function() {
             assert.deepEqual(parse_body("a"), [{ type: "text", data: "a" }]);
         });
 
-        it("Handles body of one text section and one file section: 'a~~A:\\a.a~~'", function() {
+        it("Handles body of one text section and one file section: 'a~~A:\\a.a~~'", function () {
             assert.deepEqual(parse_body("a~~A:\\a.a~~"), [{ type: "text", data: "a" }, { type: "file", data: { dir: "A:", name: "a", ext: "a" } }]);
         });
     });
 
     const parse_surround_section = parse.__get__("parse_surround_section");
 
-    describe("#parse_surround_section", function() {
-        it("Handles empty string: ''", function() {
+    describe("#parse_surround_section", function () {
+        it("Handles empty string: ''", function () {
             assert.deepEqual(parse_surround_section(""), { type: "text", data: "" });
         });
 
-        it("Handles simple surround section: '~~A:\\a.a~~'", function() {
+        it("Handles simple surround section: '~~A:\\a.a~~'", function () {
             assert.deepEqual(parse_surround_section("~~A:\\a.a~~"), { type: "file", data: { dir: "A:", name: "a", ext: "a" } });
         });
 
-        it("Handles nested surround section: '_*a*_'", function() {
+        it("Handles nested surround section: '_*a*_'", function () {
             assert.deepEqual(parse_surround_section("_*a*_"), { type: "italic", data: { data: "*a*" } });
         });
     });
 
     const parse_file = parse.__get__("parse_file");
 
-    describe("#parse_file", function() {
-        it("Handles empty string: ''", function() {
+    describe("#parse_file", function () {
+        it("Handles empty string: ''", function () {
             assert.deepEqual(parse_file(""), { dir: "", name: "", ext: "" });
         });
 
-        it("Handles forward slashes: 'A:/a.a'", function() {
+        it("Handles forward slashes: 'A:/a.a'", function () {
             assert.deepEqual(parse_file("A:/a.a"), { dir: "A:", name: "a", ext: "a" });
         });
 
@@ -194,5 +193,5 @@ describe("parse.js", function() {
         it("Handles folder: 'A:\\a'", function () {
             assert.deepEqual(parse_file("A:\\a"), { dir: "A:", name: "a", ext: "" });
         });
-    })
+    });
 });

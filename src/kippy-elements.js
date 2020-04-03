@@ -1,33 +1,19 @@
-const { Kippy, query, hash_password } = require("./core/utils.js");
+const { hash_password, authenticate } = require("./core/security.js");
+const { ClientFactory } = require("./core/db.js");
+const { Kippy } = require("./core/kippy.js");
 const { parse_chat, parse_line } = require("./core/parse.js");
 const { Peer } = require("./core/peer.js");
 const { BrowserWindow } = require("electron").remote;
 
 class WindowFrame extends Kippy {
+
     constructor() {
         super(null, "div", "window-frame");
     }
 
-    authenticate(username, password) {
-        query(`SELECT id, name FROM public.user WHERE username='${username}' AND password='${password}'`, (res) => {
-            if (res.rowCount != 0) {
-                const data = res.rows[0];
-                this.user_id = data.id;
-
-                this.username = username;
-                this.peer = new Peer(this.username);
-
-                this.peer.on("request-data", (data) => {
-                    this.peer.emit(data.src, "post-data", `>zuccthebigone:Chungus`);
-                });
-
-                this.state.authenticated = true;
-            }
-        });
-    }
-
     initialise() {
         this.views = [];
+
         this.state = {
             authenticated: false,
         };
@@ -41,10 +27,27 @@ class WindowFrame extends Kippy {
         this.other = new View(this, "Files", "fas fa-archive");
         this.sidebar = new Sidebar(this);
 
+
+    }
+
+    async authenticate(username, password) {
+        const user = await authenticate(username, password);
+        this.state.authenticated = user !== null;
+        if (this.state.authenticated) {
+            this.user_id = user.id;
+
+            this.username = username;
+            this.peer = new Peer(this.username);
+
+            this.peer.on("request-data", (data) => {
+                this.peer.emit(data.src, "post-data", `>zuccthebigone:Chungus`);
+            });
+        }
     }
 }
 
 class TitleBar extends Kippy {
+
     constructor(parent) {
         super(parent, "div", "title-bar");
     }
@@ -258,19 +261,20 @@ class SrqlTiles extends Kippy {
         this.srqls = [];
     }
 
-    update() {
+    async update() {
         if (this.root.state.authenticated) {
             this.container.innerHTML = "";
             this.srqls = [];
-            query(`SELECT id FROM srql s INNER JOIN srql_member sm ON s.id=sm.srql_id WHERE sm.user_id='${this.root.user_id}'`, (res) => {
-                res.rows.forEach(srql => {
-                    const srql_tile = new SrqlTile(this, srql.id);
-                    this.srqls.push(srql_tile);
-                    srql_tile.container.addEventListener("click", () => {
-                        this.parent.previous_view_index = this.parent.state.current_view_index;
-                        this.parent.state.current_view_index = 1;
-                        this.parent.current_srql.state.srql_id = srql.id;
-                    });
+            const clientFactory = new ClientFactory();
+            const client = await clientFactory.new();
+            const { rows } = await client.query(`SELECT id FROM srql s INNER JOIN srql_member sm ON s.id=sm.srql_id WHERE sm.user_id=$1::uuid`, [this.root.user_id]);
+            rows.forEach(srql => {
+                const srql_tile = new SrqlTile(this, srql.id);
+                this.srqls.push(srql_tile);
+                srql_tile.container.addEventListener("click", () => {
+                    this.parent.previous_view_index = this.parent.state.current_view_index;
+                    this.parent.state.current_view_index = 1;
+                    this.parent.current_srql.state.srql_id = srql.id;
                 });
             });
         }
@@ -306,17 +310,20 @@ class SrqlTile extends Kippy {
         this.appendChild(this.owner);
     }
 
-    update() {
+    async update() {
         if (this.state.srql_id === null) return;
 
-        query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id='${this.state.srql_id}' AND sm.role='owner'`, res => {
-            if (res.rowCount === 0) return;
-            this.owner.textContent = "@" + res.rows[0].username;
+        const clientFactory = new ClientFactory();
+        const client = await clientFactory.new();
+
+        client.query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id=$1::uuid AND sm.role='owner'`, [this.state.srql_id], (err, { rowCount, rows }) => {
+            if (rowCount == 0) return;
+            this.owner.textContent = "@" + rows[0].username;
         });
 
-        const srql_name = query(`SELECT * FROM srql WHERE id='${this.state.srql_id}'`, res => {
-            if (res.rowCount != 0) {
-                const srql_name = res.rows[0].name;
+        client.query(`SELECT * FROM srql WHERE id=$1::uuid`, [this.state.srql_id], (err, { rowCount, rows }) => {
+            if (rowCount != 0) {
+                const srql_name = rows[0].name;
                 const srql_initials = srql_name.substr(0, 2);
                 this.initials.textContent = srql_initials;
                 this.title.textContent = srql_name;
@@ -366,20 +373,23 @@ class ChatView extends View {
         this.appendChild(this.back);
     }
 
-    update() {
+    async update() {
         if (this.state.srql_id === null || this.state.srql_id === this.previous_srql_id) return;
         this.previous_srql_id = this.state.srql_id;
 
-        query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id='${this.state.srql_id}' AND sm.role='owner'`, res => {
-            if (res.rowCount === 0) return;
-            const owner = res.rows[0].username;
+        const clientFactory = new ClientFactory();
+        const client = await clientFactory.new();
+
+        client.query(`SELECT username FROM public.user u INNER JOIN srql_member sm ON sm.user_id=u.id WHERE sm.srql_id=$1::uuid AND sm.role='owner'`, [this.state.srql_id], (err, { rowCount, rows }) => {
+            if (rowCount === 0) return;
+            const owner = rows[0].username;
             this.root.peer.connect(this.state.srql_id);
             this.owner.textContent = "@" + owner;
         });
 
-        query(`SELECT name FROM srql WHERE id='${this.state.srql_id}'`, res => {
-            if (res.rowCount === 0) return;
-            this.title.textContent = res.rows[0].name;
+        client.query(`SELECT name FROM srql WHERE id=$1::uuid`, [this.state.srql_id], (err, { rowCount, rows }) => {
+            if (rowCount == 0) return;
+            this.title.textContent = rows[0].name;
         });
     }
 }
