@@ -1,36 +1,46 @@
 {
-  "name": "srql",
-  "version": "1.0.0",
-  "description": "A P2P file sharing platform for students.",
-  "main": "init.ts",
-  "scripts": {
-    "start": "electron .",
-    "test": "mocha",
-    "test-data": "node ./test/test-data.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/zuccthebigone/SRQL.git"
-  },
-  "author": "Matthew Dunn",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/zuccthebigone/SRQL/issues"
-  },
-  "homepage": "https://github.com/zuccthebigone/SRQL#readme",
-  "devDependencies": {
-    "electron": "^8.2.0",
-    "mocha": "^7.1.1",
-    "rewire": "^5.0.0",
-    "typescript": "^3.8.3"
-  },
-  "dependencies": {
-    "csvtojson": "^2.0.10",
-    "jquery": "^3.4.1",
-    "pg": "^7.18.2",
-    "socket.io": "^2.3.0",
-    "string-similarity": "^4.0.1",
-    "textarea-caret": "^3.1.0",
-    "uuid": "^7.0.2"
-  }
+	"name": "srql",
+	"version": "1.0.0",
+	"description": "A P2P file sharing platform for students.",
+	"main": "dev/init.ts",
+	"scripts": {
+		"start": "electron .",
+		"test": "cross-env TS_NODE_FILES=true mocha --exit --require ts-node/register --colors dev/test/**/*.test.ts",
+		"test-data": "node ./test/test-data.js",
+		"coverage": "nyc npm run test"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/zuccthebigone/SRQL.git"
+	},
+	"author": "Matthew Dunn",
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/zuccthebigone/SRQL/issues"
+	},
+	"homepage": "https://github.com/zuccthebigone/SRQL#readme",
+	"devDependencies": {
+		"@types/jquery": "^3.3.34",
+		"@types/mocha": "^7.0.2",
+		"@types/node": "^13.11.0",
+		"@types/socket.io": "^2.1.4",
+		"@types/socket.io-client": "^1.4.32",
+		"@types/string-similarity": "^3.0.0",
+		"@types/textarea-caret": "^3.0.0",
+		"cross-env": "^7.0.2",
+		"electron": "^8.2.0",
+		"mocha": "^7.1.1",
+		"nyc": "^15.0.1",
+		"ts-node": "^8.8.1",
+		"typescript": "^3.8.3"
+	},
+	"dependencies": {
+		"csvtojson": "^2.0.10",
+		"jquery": "^3.4.1",
+		"pg": "^7.18.2",
+		"socket.io": "^2.3.0",
+		"string-similarity": "^4.0.1",
+		"textarea-caret": "^3.1.0",
+		"uuid": "^7.0.2"
+	}
 }

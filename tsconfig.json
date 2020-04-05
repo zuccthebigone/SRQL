@@ -1,6 +1,10 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "module": "CommonJS"
+        "module": "CommonJS",
+        "sourceMap": true,
+        "outDir": "dist",
+        "rootDir": "dev",
+        "allowJs": true,
     },
 }
