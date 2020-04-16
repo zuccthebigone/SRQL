@@ -1,0 +1,23 @@
+{
+  "name": "srql-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node build/index.js",
+    "test": "test"
+  },
+  "author": "Matthew Dunn and Christian Dunn",
+  "license": "ISC",
+  "dependencies": {
+    "@types/pg": "^7.14.3",
+    "@types/uuid": "^7.0.2",
+    "express": "^4.17.1",
+    "expressjs": "^1.0.1",
+    "pg": "^8.0.2",
+    "uuid": "^7.0.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.6"
+  }
+}
