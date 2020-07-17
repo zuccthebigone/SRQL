@@ -2,9 +2,9 @@
   "name": "srql",
   "version": "1.0.0",
   "description": "A P2P file sharing platform for students.",
-  "main": "init.ts",
+  "main": "App.js",
   "scripts": {
-    "start": "electron .",
+    "start": "tsc --build tsconfig.json && electron dist/App.js",
     "test": "mocha",
     "test-data": "node ./test/test-data.js"
   },

@@ -1,0 +1,545 @@
+@charset "UTF-8";
+* {
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
+}
+
+:root ::-webkit-scrollbar {
+  width: 8px;
+}
+
+:root ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+:root ::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+:root ::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+:root body {
+  margin: 0;
+}
+
+:root :focus {
+  outline: none;
+}
+
+#app-view {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+
+#app-view #tab-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  -webkit-app-region: drag;
+  background-color: #4f4a80;
+  text-align: center;
+}
+
+#app-view #tab-bar .srql-search {
+  width: 55%;
+  max-width: 650px;
+  height: 34px;
+  margin: 7px 0;
+  -webkit-app-region: none;
+  border: none;
+  border-radius: 6px;
+  background-color: #eee;
+  text-align: center;
+  padding-left: 12px;
+  -webkit-transition: background-color .4s;
+  transition: background-color .4s;
+}
+
+#app-view #tab-bar .srql-search:focus {
+  text-align: left;
+  background-color: white;
+}
+
+#app-view #tab-bar .settings {
+  float: left;
+  -webkit-app-region: none;
+  width: 68px;
+  height: 48px;
+  background-color: transparent;
+  line-height: 48px;
+  color: white;
+  font-size: 16px;
+  border: none;
+  margin: 0;
+  cursor: pointer;
+  -webkit-transition: -webkit-transform .4s;
+  transition: -webkit-transform .4s;
+  transition: transform .4s;
+  transition: transform .4s, -webkit-transform .4s;
+}
+
+#app-view #tab-bar .settings:hover {
+  background-color: transparent;
+  -webkit-transform: rotate(90deg);
+          transform: rotate(90deg);
+}
+
+#app-view #tab-bar button {
+  float: right;
+  -webkit-app-region: none;
+  background-color: transparent;
+  color: white;
+  font-size: 16px;
+  border: none;
+  width: 44px;
+  height: 48px;
+  margin: 0;
+  cursor: pointer;
+}
+
+#app-view #tab-bar button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+#app-view #tab-bar button:active {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+#app-view #tab-bar button.close:hover {
+  background-color: #ff3f3f;
+}
+
+#app-view .login {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: fixed;
+  top: 48px;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  background-color: #eee;
+}
+
+#app-view .login input {
+  width: 300px;
+  height: 40px;
+  padding-left: 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+#app-view #page-select {
+  position: fixed;
+  top: 48px;
+  left: 0;
+  bottom: 0;
+  width: 68px;
+  background: #2a2d39;
+}
+
+#app-view #page-select button {
+  width: 68px;
+  height: 60px;
+  border: none;
+  background-color: transparent;
+  color: #aaaaaa;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+#app-view #page-select button i {
+  display: block !important;
+  padding-bottom: 4px;
+  color: #ddd;
+  font-size: 24px;
+}
+
+#app-view #page-select button:hover {
+  background-color: #333f52;
+  color: white;
+}
+
+#app-view #page-select button:hover i {
+  color: white;
+}
+
+#app-view #page-select button[active] {
+  background-color: #333f52;
+  color: white;
+  border-right: 4px solid #ddd;
+}
+
+#app-view .page {
+  display: none;
+  position: fixed;
+  top: 48px;
+  left: 68px;
+  bottom: 0;
+  right: 0;
+  background-color: #eee;
+}
+
+#app-view .page[active] {
+  display: block;
+}
+
+#app-view .page h1 {
+  padding: 24px;
+  margin: 0;
+  height: 60px;
+  border-bottom: 1px solid #ddd;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+#app-view #srql-page {
+  padding: 24px;
+  -ms-grid-columns: 180px 180px 180px 180px 180px 180px;
+      grid-template-columns: 180px 180px 180px 180px 180px 180px;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  grid-column-gap: 32px;
+  grid-row-gap: 32px;
+  overflow-y: auto;
+}
+
+#app-view #srql-page[active] {
+  display: -ms-grid !important;
+  display: grid !important;
+}
+
+#app-view #srql-page .tile {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: relative;
+  width: 180px;
+  height: 180px;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  background-color: #fff;
+  border-radius: 50px;
+  -webkit-box-shadow: 4px 4px 0 0 #0000000a;
+          box-shadow: 4px 4px 0 0 #0000000a;
+  -webkit-transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  cursor: pointer;
+}
+
+#app-view #srql-page .tile:hover {
+  -webkit-box-shadow: 2px 2px 0 0 #0000000a;
+          box-shadow: 2px 2px 0 0 #0000000a;
+  -webkit-transform: translate(2px, 2px);
+          transform: translate(2px, 2px);
+}
+
+#app-view #srql-page .tile:active {
+  -webkit-box-shadow: 0 0 0 0 #0000000a, inset 2px 2px 0 0 #0000001f;
+          box-shadow: 0 0 0 0 #0000000a, inset 2px 2px 0 0 #0000001f;
+  -webkit-transform: translate(4px, 4px);
+          transform: translate(4px, 4px);
+}
+
+#app-view #srql-page .tile .owner {
+  position: absolute;
+  top: 23px;
+  left: 28px;
+  color: #bbb;
+  font-size: 8px;
+}
+
+#app-view #srql-page .tile .options {
+  position: absolute;
+  top: 20px;
+  right: 32px;
+  background-color: transparent;
+  border: none;
+  color: #d3d3d3;
+  cursor: pointer;
+  -webkit-transition: color .2s;
+  transition: color .2s;
+}
+
+#app-view #srql-page .tile .options:hover {
+  color: black;
+}
+
+#app-view #srql-page .tile .image {
+  width: 70px;
+  height: 70px;
+  background-color: #4f4a80;
+  border-radius: 100%;
+  color: #d9d9d9;
+  text-align: center;
+  line-height: 70px;
+}
+
+#app-view #srql-page .tile .title {
+  position: absolute;
+  top: 146px;
+  font-size: 10px;
+}
+
+@media screen and (max-width: 1350px) {
+  #app-view #srql-page {
+    -ms-grid-columns: 180px 180px 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px 180px 180px;
+  }
+}
+
+@media screen and (max-width: 1140px) {
+  #app-view #srql-page {
+    -ms-grid-columns: 180px 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px 180px;
+  }
+}
+
+@media screen and (max-width: 930px) {
+  #app-view #srql-page {
+    -ms-grid-columns: 180px 180px 180px;
+        grid-template-columns: 180px 180px 180px;
+  }
+}
+
+#app-view #chat-page .info {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: absolute;
+  top: 32px;
+  left: 0;
+  z-index: 9999;
+  width: 100%;
+  height: 32px;
+  padding-left: 15%;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  color: #555;
+}
+
+#app-view #chat-page .info .title {
+  letter-spacing: 1px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#app-view #chat-page .info .title::after {
+  content: "•";
+  margin: 0 8px;
+}
+
+#app-view #chat-page .info .owner {
+  font-size: 12px;
+  color: #00bfff;
+  cursor: pointer;
+}
+
+#app-view #chat-page .info .owner:hover {
+  text-decoration: underline;
+}
+
+#app-view #chat-page .info .settings {
+  position: absolute;
+  right: 60px;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: white;
+  text-align: center;
+  line-height: 32px;
+  font-size: 18px;
+  color: #4f4a80;
+  -webkit-box-shadow: 3px 3px 0 0 #0000000a;
+          box-shadow: 3px 3px 0 0 #0000000a;
+  cursor: pointer;
+  -webkit-transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+  transition: box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-box-shadow 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73), -webkit-transform 0.2s cubic-bezier(0.01, 0.03, 0.14, 1.73);
+}
+
+#app-view #chat-page .info .settings:hover {
+  -webkit-box-shadow: 1px 1px 0 0 #0000000a;
+          box-shadow: 1px 1px 0 0 #0000000a;
+  -webkit-transform: translate(2px, 2px);
+          transform: translate(2px, 2px);
+}
+
+#app-view #chat-page .info .settings:active {
+  -webkit-box-shadow: 0 0 0 0 #0000000a, inset 1px 1px 0 0 #0000001f;
+          box-shadow: 0 0 0 0 #0000000a, inset 1px 1px 0 0 #0000001f;
+  -webkit-transform: translate(3px, 3px);
+          transform: translate(3px, 3px);
+}
+
+#app-view #chat-page #chat-feed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 94px;
+  right: 0;
+  padding: 24px 15%;
+  padding-top: 88px;
+  background-color: #f3f3f3;
+  overflow-y: auto;
+}
+
+#app-view #chat-page #chat-feed .tooltip {
+  position: absolute;
+  opacity: 0;
+  padding: 8px;
+  background-color: #000;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  -webkit-transition: opacity .2s;
+  transition: opacity .2s;
+}
+
+#app-view #chat-page #chat-feed .tooltip::after {
+  content: " ";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: #000;
+}
+
+#app-view #chat-page #chat-feed .file {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+  width: 60%;
+  float: left;
+  border-radius: 20px;
+  margin: 2px 0;
+  font-size: 12px;
+  background-color: #99cffe;
+  cursor: pointer;
+}
+
+#app-view #chat-page #chat-feed .file .author {
+  display: block;
+  font-size: 10px;
+  padding-right: 12px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#app-view #chat-page #chat-feed .file .author:hover {
+  text-decoration: underline;
+}
+
+#app-view #chat-page #chat-feed .file .icon {
+  float: right;
+  background-color: #79a2c6;
+  padding: 12px 24px;
+  border-radius: 0 20px 20px 0;
+  text-align: center;
+  line-height: 32px;
+  font-size: 18px;
+  color: white;
+}
+
+#app-view #chat-page #chat-feed .file .name {
+  -webkit-box-flex: 1;
+      -ms-flex: 1;
+          flex: 1;
+  display: inline;
+  padding: 0 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 32px;
+}
+
+#app-view #chat-page #chat-feed .file[own] {
+  float: right;
+}
+
+#app-view #chat-page #chat-feed .message {
+  display: block;
+  float: left;
+  width: 60%;
+  border-radius: 20px;
+  padding: 12px 24px;
+  margin: 2px 0;
+  background-color: #99cffe;
+}
+
+#app-view #chat-page #chat-feed .message .author {
+  display: block;
+  font-size: 10px;
+  color: #fff;
+  cursor: pointer;
+}
+
+#app-view #chat-page #chat-feed .message .author:hover {
+  text-decoration: underline;
+}
+
+#app-view #chat-page #chat-feed .message .text {
+  display: inline-block;
+  width: 100%;
+  color: #000;
+  font-size: 12px;
+  overflow-wrap: break-word;
+}
+
+#app-view #chat-page #chat-feed .message[own] {
+  float: right;
+}
+
+#app-view #chat-page #feed-input {
+  width: 70%;
+  position: absolute;
+  bottom: 26px;
+  left: 0;
+  right: 0;
+  height: 46px;
+  margin: auto;
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  background-color: white;
+}
+
+#app-view #chat-page #feed-input:hover, #app-view #chat-page #feed-input:focus {
+  border-color: #ccc;
+}
+/*# sourceMappingURL=index.css.map */
