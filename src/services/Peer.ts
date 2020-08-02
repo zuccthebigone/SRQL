@@ -235,7 +235,7 @@ export class Peer extends BasePeer {
     }
 
     emit(room: string, socketId: string, type: string, data: any) {
-        this.rooms[room][socketId].channel.send(JSON.stringify(new DataEvent(type, data)));
+        this.rooms[room][socketId].channel?.send(JSON.stringify(new DataEvent(type, data)));
     }
 
     send(room: string, socketId: string, data: any) {
